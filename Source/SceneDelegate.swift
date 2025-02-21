@@ -22,7 +22,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let navigationController = UINavigationController()
 
         // Usando o Coordinating para gerenciar o fluxo da navegação
-        let rootCoordinator = Coordinating<UINavigationController>.coordinatorOnboarding()
+        let rootCoordinator: NavigationCoordinator = .onboarding
         rootCoordinator.navigate(navigationController)
 
         window.rootViewController = navigationController

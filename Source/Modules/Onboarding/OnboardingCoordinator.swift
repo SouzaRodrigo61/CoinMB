@@ -15,4 +15,9 @@ extension Coordinating where A == UINavigationController {
             navigationController.pushViewController(viewController, animated: false)
         }
     }
+
+    // Propriedade computed que encapsula a chamada do coordinator
+    static var onboarding: Self {
+        coordinatorOnboarding()
+    }
 }

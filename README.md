@@ -1,16 +1,5 @@
 # CoinMB - iOS Application  
 
-## Visão Geral  
-
-O objetivo deste projeto é utilizar um template fornecido para desenvolver um aplicativo com duas telas:  
-1. Uma tela que exibe uma lista de produtos da **CoinMB Store**.  
-2. Uma tela que apresenta os detalhes de um produto.
-
-| Tela         | Descrição                                                                                                     | Imagem                     |
-|--------------|-------------------------------------------------------------------------------------------------------------|----------------------------|
-| **Home**     | Tela inicial que exibe a lista de produtos disponíveis na **CoinMB Store**.                                   | ![Home](assets/home.png)   |
-| **Detalhes** | Tela de detalhes que apresenta informações detalhadas sobre o produto selecionado. Layout de design livre.  | ![Detail](assets/detail.png) |
-
 ## Arquitetura  
 
 O projeto utiliza uma arquitetura baseada no padrão **MVVM-C** (Model-View-ViewModel-Coordinator), incorporando conceitos modernos de programação funcional inspirados pelo **Point-Free Style**.  

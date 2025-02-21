@@ -9,11 +9,15 @@ import UIKit
 
 extension Coordinating where A == UINavigationController {
 
-    static func coordinator{{ name }}(viewControllerProvider: @escaping () -> UIViewController) -> Self {
+    static func coordinator{{ name }}() -> Self {
         return Self { navigationController in
             let viewController = {{ name }}.builder()
             navigationController.pushViewController(viewController, animated: false)
         }
+    }
+
+    static var {{ name|lowercase }}: Self {
+        coordinator{{ name }}()
     }
 
 }
