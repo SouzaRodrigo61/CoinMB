@@ -1,0 +1,8 @@
+//
+//  {{ name }}.swift
+//  iOS CoinMB
+//
+//  Created by {{ author }} on {{ date }}.
+//
+
+enum {{ name }} { }
