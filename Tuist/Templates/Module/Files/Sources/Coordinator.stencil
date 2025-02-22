@@ -19,5 +19,4 @@ extension Coordinating where A == UINavigationController {
     static var {{ name|lowercase }}: Self {
         coordinator{{ name }}()
     }
-
 }

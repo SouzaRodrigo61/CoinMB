@@ -13,7 +13,7 @@ extension {{ name }} {
 
         private var model: ViewModel
 
-        private let view: View = {
+        private let screen: View = {
             let view = View()
             return view
         }()
@@ -32,17 +32,15 @@ extension {{ name }} {
             setupConstraints()
 
             // MARK: Configure
-            view.configure()
+            screen.configure()
         }
 
         private func setupConstraints() {
-            view.addSubview(view)
+            view.addSubview(screen)
 
-            view.snp.makeConstraints { make in
+            screen.snp.makeConstraints { make in
                 make.edges.equalToSuperview()
             }
         }
     }
 }
-
-

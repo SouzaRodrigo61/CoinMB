@@ -1,14 +1,13 @@
 //
-//  Onboarding.swift
+//  Home.swift
 //  CoinMB
 //
-//  Created by Rodrigo Souza on 20/02/2025.
+//  Created by Rodrigo Souza on 21/02/2025.
 //
 
 import UIKit
 
-enum Onboarding {
-
+enum Home {
     static func builder() -> UIViewController {
         let viewModel = ViewModel()
         let viewController = ViewController(model: viewModel)

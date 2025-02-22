@@ -61,19 +61,19 @@ let template = Template(
             templatePath: "Files/Sources/Feature.stencil"
         ),
         .file(
-            path: "Source/Modules/\(nameAttribute)/\(nameAttribute)Coordinator.swift",
+            path: "Source/Modules/\(nameAttribute)/\(nameAttribute)+Coordinator.swift",
             templatePath: "Files/Sources/Coordinator.stencil"
         ),
         .file(
-            path: "Source/Modules/\(nameAttribute)/\(nameAttribute)ViewModel.swift",
+            path: "Source/Modules/\(nameAttribute)/\(nameAttribute)+ViewModel.swift",
             templatePath: "Files/Sources/ViewModel.stencil"
         ),
         .file(
-            path: "Source/Modules/\(nameAttribute)/\(nameAttribute)View.swift",
+            path: "Source/Modules/\(nameAttribute)/\(nameAttribute)+View.swift",
             templatePath: "Files/Sources/View.stencil"
         ),  
         .file(
-            path: "Source/Modules/\(nameAttribute)/\(nameAttribute)ViewController.swift",
+            path: "Source/Modules/\(nameAttribute)/\(nameAttribute)+ViewController.swift",
             templatePath: "Files/Sources/ViewController.stencil"
         ),
         .file(

@@ -16,5 +16,4 @@ struct Coordinating<A> {
     let navigate: (A) -> Void
 }
 
-// Define um typealias para facilitar o uso do Coordinating com UINavigationController
 typealias NavigationCoordinator = Coordinating<UINavigationController>
