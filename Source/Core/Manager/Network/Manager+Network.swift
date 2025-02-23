@@ -11,7 +11,7 @@ extension Manager {
     struct Network: Sendable {
         private let configuration: Configuration = .default
 
-        public var get: @Sendable (String, @escaping (Result<Data, NetworkError>) -> Void) -> Void
+        public var get: @Sendable (String, [String:String]?, @escaping (Result<Data, NetworkError>) -> Void) -> Void
         public var post: @Sendable (String, Data?, @escaping (Result<Data, NetworkError>) -> Void) -> Void
         public var put: @Sendable (String, Data?, @escaping (Result<Data, NetworkError>) -> Void) -> Void
         public var delete: @Sendable (String, @escaping (Result<Data, NetworkError>) -> Void) -> Void
@@ -36,7 +36,7 @@ extension Manager.Network {
             baseURL: URL(string: "https://api-realtime.exrates.coinapi.io")!,
             timeout: 10,
             retryCount: 3, 
-            token: "a8675627-7e9b-414e-822a-e5f762ae7543"
+            token: "f00dffe4-e2b7-4267-8eb3-063dd54cda1b"
         )
         
         static let marketData = Configuration(
@@ -77,11 +77,12 @@ extension Manager.Network {
     public static let exchangeRateLive: Self = {
         let configuration = Configuration.exchangeRate
         return Self(
-            get: { endpoint, completion in
+            get: { endpoint, query, completion in
                 request(endpoint: endpoint,
-                        method: .get,
-                        configuration: configuration,
-                        completion: completion)
+                       method: .get,
+                       query: query,
+                       configuration: configuration,
+                       completion: completion)
             },
             post: { endpoint, body, completion in
                 request(endpoint: endpoint,
@@ -109,11 +110,12 @@ extension Manager.Network {
     public static let marketRateLive: Self = {
         let configuration = Configuration.marketData
         return Self(
-            get: { endpoint, completion in
+            get: { endpoint, query, completion in
                 request(endpoint: endpoint,
-                        method: .get,
-                        configuration: configuration,
-                        completion: completion)
+                       method: .get,
+                       query: query,
+                       configuration: configuration,
+                       completion: completion)
             },
             post: { endpoint, body, completion in
                 request(endpoint: endpoint,
@@ -141,11 +143,19 @@ extension Manager.Network {
     private static func request(
         endpoint: String,
         method: Method,
+        query: [String: String]? = nil,
         body: Data? = nil,
         configuration: Configuration,
         completion: @escaping (Result<Data, NetworkError>) -> Void
     ) {
-        let url = configuration.baseURL.appendingPathComponent(endpoint)
+        var url = configuration.baseURL.appendingPathComponent(endpoint)
+        
+        if let queryParams = query {
+            var components = URLComponents(url: url, resolvingAgainstBaseURL: true)
+            components?.queryItems = queryParams.map { URLQueryItem(name: $0.key, value: $0.value) }
+            url = components?.url ?? url
+        }
+        
         let session = configureSession(with: configuration)
 
         func performRequest(attempt: Int) {

@@ -10,9 +10,15 @@ import Combine
 
 extension Home {
     class ViewModel: Identifiable {
-        @Published var currentRates: CurrentRates?
-        @Published var icons: ExchangeIcons?
-        @Published var error: NetworkError?
+        @Published var error: Repository.NetworkError?
+        @Published var icons: Repository.ExchangeIcons?
+
+        @Published var model: Model?
+
+        @Published var selectedCrypto: String = "btc"
+        @Published var selectedCurrency: String = "usd"
+        @Published var selectedStartDate: Date = Calendar.current.date(byAdding: .day, value: -30, to: .now) ?? .now
+        @Published var selectedEndDate: Date = .now
 
         private let repository: Repository
         
@@ -20,18 +26,60 @@ extension Home {
         
         init(repository: Repository = .init()) {
             self.repository = repository
+
+            self.model = .init(
+                rates: [],
+                periods: [],
+                currentCrypto: selectedCrypto
+            )
         }
 
-        func fetchCurrentRates(with crypto: String) {
+        func fetchCurrentRates() {
+            fetchExchangeIcon()
+            fetchCurrentRate(crypto: selectedCrypto)
+            fetchExchangePeriod(
+                sourceAsset: selectedCrypto,
+                targetAsset: selectedCurrency,
+                startDate: selectedStartDate,
+                endDate: selectedEndDate
+            )
+        }
+
+        func fetchCurrentRate(crypto: String) {
             repository.fetchCurrentRate(crypto: crypto) { [weak self] result in
                 switch result {
                 case .success(let currentRates):
-                    self?.currentRates = currentRates
+                    self?.model?.rates = currentRates.rates
                 case .failure(let error):
                     self?.error = error
                 }
             }
-            
+        }
+        func fetchExchangePeriod(
+            sourceAsset: String,
+            targetAsset: String,
+            startDate: Date,
+            endDate: Date
+        ) {
+            repository.fetchExchangePeriod(
+                sourceAsset: sourceAsset,
+                targetAsset: targetAsset,
+                startedDate: startDate,
+                endDate: endDate
+            ) { [weak self] result in
+                
+                dump(result, name: "fetchExchangePeriod")
+                
+                switch result {
+                case .success(let periods):
+                    self?.model?.periods = periods
+                case .failure(let error):
+                    self?.error = error
+                }
+            }
+        }
+
+        func fetchExchangeIcon() {
             repository.fetchExchangeIcon(with: 44) { [weak self] result in
                 switch result {
                 case .success(let icons):
@@ -45,42 +93,47 @@ extension Home {
 }
 
 extension Home.ViewModel { 
-    enum NetworkError: Error {
-        case decode(msg: String, error: String)
-        case network(Manager.Network.NetworkError)
-    }
-
-    struct CurrentRates: Codable {
-        let assetIdBase: String
-        let rates: [Rate]
+    struct Model: Equatable, Hashable {
+        var rates: [Home.Repository.CurrentRates.Rate]
+        var periods: [Home.Repository.ExchangePeriod]
+        let currentCrypto: String
         
-        struct Rate: Codable {
+        struct RateInfo: Equatable, Hashable {
+            let currency: String
+            let value: Double
             let time: String
-            let assetIdQuote: String
-            let rate: Double
-            
-            enum CodingKeys: String, CodingKey {
-                case time
-                case assetIdQuote = "asset_id_quote"
-                case rate
+        }
+        
+        struct PeriodInfo: Equatable, Hashable {
+            let openValue: Double
+            let closeValue: Double
+            let highValue: Double
+            let lowValue: Double
+            let startTime: String
+            let endTime: String
+        }
+        
+        var formattedRates: [RateInfo] {
+            rates.map { rate in
+                RateInfo(
+                    currency: rate.assetIdQuote,
+                    value: rate.rate,
+                    time: rate.time
+                )
             }
         }
         
-        enum CodingKeys: String, CodingKey {
-            case assetIdBase = "asset_id_base"
-            case rates
-        }
-    }
-    
-    typealias ExchangeIcons = [ExchangeIcon]
-    
-    struct ExchangeIcon: Codable {
-        let exchangeId: String
-        let url: String
-        
-        enum CodingKeys: String, CodingKey {
-            case exchangeId = "exchange_id"
-            case url
+        var formattedPeriods: [PeriodInfo] {
+            periods.map { period in
+                PeriodInfo(
+                    openValue: period.rateOpen,
+                    closeValue: period.rateClose,
+                    highValue: period.rateHigh,
+                    lowValue: period.rateLow,
+                    startTime: period.timePeriodStart,
+                    endTime: period.timePeriodEnd
+                )
+            }
         }
     }
 }

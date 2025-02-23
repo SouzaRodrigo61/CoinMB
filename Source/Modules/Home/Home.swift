@@ -10,7 +10,7 @@ import UIKit
 enum Home {
     static func builder() -> UIViewController {
         let viewModel = ViewModel()
-        let viewController = ViewController(model: viewModel)
+        let viewController = ViewController(viewModel: viewModel)
 
         return viewController
     }

@@ -11,15 +11,15 @@ import SnapKit
 extension Home {
     final class ViewController: UIViewController {
 
-        private var model: ViewModel
+        private var viewModel: ViewModel
 
         private let screen: View = {
             let view = View()
             return view
         }()
 
-        init(model: ViewModel) {
-            self.model = model
+        init(viewModel: ViewModel) {
+            self.viewModel = viewModel
             super.init(nibName: nil, bundle: nil)
         }
 
@@ -27,12 +27,16 @@ extension Home {
             fatalError("init(coder:) has not been implemented")
         }
 
+        override func viewWillAppear(_ animated: Bool) {
+            super.viewWillAppear(animated)
+            navigationController?.setNavigationBarHidden(true, animated: true)
+        }
+
         override func viewDidLoad() {
             super.viewDidLoad()
             setupConstraints()
 
             // MARK: Configure
-            screen.configure()
             bindViewModel()
             viewModelDidInitialize()
         }
@@ -46,25 +50,27 @@ extension Home {
         }
 
         private func bindViewModel() {
-            model.$currentRates
+            viewModel.$model
                 .receive(on: DispatchQueue.main)
-                .sink { [weak self] currentRates in
-                    guard let self else { return }
-                    dump(currentRates, name: "$currentRates")
+                .sink { [weak self] model in
+                    guard let self, let model = model else { return }
+                    screen.configure(with: model)
                 }
-                .store(in: &model.cancellables)
+                .store(in: &viewModel.cancellables)
             
-            model.$icons
+            viewModel.$icons
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] icon in 
-                    guard let self else { return }
-                    dump(icon, name: "$icons")
+//                    guard let self else { return }
+//                    dump(icon, name: "$icons")
                 }
-                .store(in: &model.cancellables)
+                .store(in: &viewModel.cancellables)
         }
 
         private func viewModelDidInitialize() {
-            model.fetchCurrentRates(with: "BTC")
+            DispatchQueue.global(qos: .background).async {
+                self.viewModel.fetchCurrentRates()
+            }
         }
     }
 }
