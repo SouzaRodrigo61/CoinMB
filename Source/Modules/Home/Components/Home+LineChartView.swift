@@ -255,6 +255,9 @@ extension Home {
             }
             
             if let selectedIndex = selectedPointIndex {
+                lineLayer.opacity = isDragging ? 0.3 : 1.0
+                gradientLayer.opacity = isDragging ? 0.3 : 1.0
+                
                 let point = points[selectedIndex]
                 
                 let dashPath = UIBezierPath()
@@ -278,8 +281,6 @@ extension Home {
                 if isDragging {
                     let highlightPath = UIBezierPath()
                     let segmentWidth: CGFloat = bounds.width / CGFloat(points.count - 1)
-                    let startX = max(0, point.x - segmentWidth)
-                    let endX = min(bounds.width, point.x + segmentWidth)
                     
                     let startIndex = max(0, selectedIndex - 1)
                     let endIndex = min(points.count - 1, selectedIndex + 1)
@@ -304,6 +305,8 @@ extension Home {
                     highlightLineLayer.opacity = 0
                 }
             } else {
+                lineLayer.opacity = 1.0
+                gradientLayer.opacity = 1.0
                 dashLayer.path = nil
                 dashGradientLayer.opacity = 0
                 pointLayer.path = nil
