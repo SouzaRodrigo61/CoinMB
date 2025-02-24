@@ -9,7 +9,7 @@ import UIKit
 import SnapKit
 
 extension Home { 
-    class HeaderCell: UICollectionReusableView {        
+    class HeaderCell: UICollectionReusableView {
         static let reuseIdentifier = "Home.HeaderCell"
         
         // MARK: - Properties

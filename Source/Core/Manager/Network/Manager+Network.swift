@@ -26,7 +26,7 @@ extension Manager.Network {
         let token: String
 
         static let `default` = Configuration(
-            baseURL: URL(string: "https://7hgi9vtkdc.execute-api.sa-east-1.amazonaws.com")!,
+            baseURL: URL(string: "...")!,
             timeout: 10,
             retryCount: 3, 
             token: ""

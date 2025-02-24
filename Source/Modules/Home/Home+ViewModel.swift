@@ -98,7 +98,7 @@ extension Home {
             switch filter {
             case .oneDay:
                 startDate = calendar.date(byAdding: .day, value: -3, to: .now) ?? .now
-                periodId = "4HRS"
+                periodId = "1HRS"
             case .oneWeek:
                 startDate = calendar.date(byAdding: .day, value: -7, to: .now) ?? .now
             case .oneMonth:
@@ -116,8 +116,6 @@ extension Home {
             
             selectedStartDate = startDate
             selectedEndDate = .now
-            
-            dump(selectedStartDate, name: "Now - \(selectedEndDate)")
             
             fetchExchangePeriod(
                 sourceAsset: selectedCrypto,
