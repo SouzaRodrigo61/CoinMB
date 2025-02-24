@@ -173,6 +173,14 @@ extension Home {
             isDragging = true
             onDragBegan?()
             updateSelectedPoint(at: location)
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.isDragging = false
+                self.onDragEnded?()
+                self.selectedPointIndex = nil
+                self.lastSelectedIndex = nil
+                self.setNeedsLayout()
+            }
         }
         
         private func updateSelectedPoint(at location: CGPoint) {
@@ -182,15 +190,16 @@ extension Home {
             let index = Int((location.x / horizontalGap).rounded())
             let clampedIndex = max(0, min(index, dataPoints.count - 1))
             
-            if lastSelectedIndex != clampedIndex {
-                feedbackGenerator.selectionChanged()
-                lastSelectedIndex = clampedIndex
-            }
+            guard lastSelectedIndex != clampedIndex else { return }
             
+            feedbackGenerator.selectionChanged()
+            lastSelectedIndex = clampedIndex
             selectedPointIndex = clampedIndex
-            onPointSelected?(clampedIndex, dataPoints[clampedIndex])
             
-            setNeedsLayout()
+            DispatchQueue.main.async {
+                self.onPointSelected?(clampedIndex, self.dataPoints[clampedIndex])
+                self.setNeedsLayout()
+            }
         }
         
         override func layoutSubviews() {
