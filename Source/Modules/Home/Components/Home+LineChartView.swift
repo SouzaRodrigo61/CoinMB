@@ -256,7 +256,7 @@ extension Home {
             
             if let selectedIndex = selectedPointIndex {
                 lineLayer.opacity = isDragging ? 0.3 : 1.0
-                gradientLayer.opacity = isDragging ? 0.3 : 1.0
+                gradientLayer.opacity = isDragging ? 0.6 : 1.0
                 
                 let point = points[selectedIndex]
                 
