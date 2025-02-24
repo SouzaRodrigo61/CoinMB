@@ -43,8 +43,8 @@ extension Home {
             return label
         }()
         
-        private lazy var amountLabel: UILabel = {
-            let label = UILabel()
+        private lazy var amountLabel: Home.RollingCounterLabel = {
+            let label = Home.RollingCounterLabel()
             label.font = .systemFont(ofSize: 32, weight: .bold)
             label.textColor = .label
             label.textAlignment = .center
@@ -231,20 +231,13 @@ extension Home {
             originalAmount = dayOperation.rateClose
             chartData = model
             cryptoNameLabel.text = cryptoName
-            amountLabel.text = "USD \(String(format: "%.2f", originalAmount))"
+            amountLabel.setValue(originalAmount, animated: false)
             chartView.dataPoints = model.map { CGFloat($0.rateClose) }
         }
 
         private func updateAmount(value: Double, date: Date? = nil) {
             let isHigher = value > originalAmount
             let isEqual = value == originalAmount
-            
-            let numberFormatter = NumberFormatter()
-            numberFormatter.numberStyle = .currency
-            numberFormatter.currencySymbol = "USD"
-            numberFormatter.minimumFractionDigits = 2
-            
-            let formattedValue = numberFormatter.string(from: NSNumber(value: value)) ?? "USD 0.00"
             
             if let date = date {
                 let dateFormatter = DateFormatter()
@@ -255,42 +248,29 @@ extension Home {
                 let dateString = dateFormatter.string(from: date)
                 let timeString = timeFormatter.string(from: date)
                 
-                // Animar com fade e slide suave
                 UIView.animate(withDuration: 0.3, 
                               delay: 0,
                               options: .curveEaseInOut) {
-                    // Slide para cima
-                    self.amountLabel.transform = CGAffineTransform(translationX: 0, y: -5)
                     self.cryptoNameLabel.transform = CGAffineTransform(translationX: 0, y: -5)
-                    
-                    self.amountLabel.text = formattedValue
                     self.cryptoNameLabel.text = "\(dateString) às \(timeString)"
-                    
-                    // Ajusta opacidade
-                    self.amountLabel.alpha = 0.9
                     self.cryptoNameLabel.alpha = 0.8
                 } completion: { _ in
                     UIView.animate(withDuration: 0.2) {
-                        // Retorna à posição original
-                        self.amountLabel.transform = .identity
                         self.cryptoNameLabel.transform = .identity
                     }
                 }
             } else {
-                // Restaurar labels com animação suave
                 UIView.animate(withDuration: 0.3) {
-                    self.amountLabel.transform = .identity
                     self.cryptoNameLabel.transform = .identity
-                    self.amountLabel.alpha = 1
                     self.cryptoNameLabel.alpha = 1
-                    self.amountLabel.text = formattedValue
                     self.cryptoNameLabel.text = "Bitcoin"
                 }
             }
             
             let color = isEqual ? UIColor.label : (isHigher ? .systemGreen : .systemRed)
             amountLabel.textColor = color
-            cryptoNameLabel.textColor = color.withAlphaComponent(0.8) // Texto da data um pouco mais suave
+            amountLabel.setValue(value, animated: true)
+            cryptoNameLabel.textColor = color.withAlphaComponent(0.8)
             
             let imageName = isEqual ? "" : (isHigher ? "chevron.up" : "chevron.down")
             trendImageView.image = imageName.isEmpty ? nil : UIImage(systemName: imageName)
