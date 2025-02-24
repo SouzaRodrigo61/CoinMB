@@ -56,9 +56,8 @@ extension Home {
             
             layer.addSublayer(gradientLayer)
             layer.addSublayer(lineLayer)
-            layer.addSublayer(pointLayer)
-            layer.addSublayer(dashLayer)
             layer.addSublayer(dashGradientLayer)
+            layer.addSublayer(pointLayer)
             
             lineLayer.lineWidth = lineWidth
             lineLayer.lineCap = .round
@@ -72,16 +71,16 @@ extension Home {
             
             pointLayer.fillColor = UIColor.white.cgColor
             pointLayer.strokeColor = lineColor.cgColor
-            pointLayer.lineWidth = 2.0
-            pointLayer.shadowColor = lineColor.cgColor
-            pointLayer.shadowOffset = .zero
-            pointLayer.shadowOpacity = 0.2
-            pointLayer.shadowRadius = 8
+            pointLayer.lineWidth = 3.0
+            pointLayer.shadowColor = UIColor.black.cgColor
+            pointLayer.shadowOffset = CGSize(width: 0, height: 1)
+            pointLayer.shadowOpacity = 0.3
+            pointLayer.shadowRadius = 4
             
             dashGradientLayer.colors = [
                 UIColor.clear.cgColor,
-                UIColor.systemGray.cgColor,
-                UIColor.systemGray.cgColor,
+                lineColor.cgColor,
+                lineColor.cgColor,
                 UIColor.clear.cgColor
             ]
             dashGradientLayer.locations = [0.0, 0.1, 0.9, 1.0]
@@ -252,6 +251,15 @@ extension Home {
                                                    endAngle: .pi * 2,
                                                    clockwise: true)
                 pointLayer.path = selectedPointPath.cgPath
+                
+                if !isDragging {
+                    let scaleAnimation = CABasicAnimation(keyPath: "transform")
+                    scaleAnimation.fromValue = CATransform3DMakeScale(0.8, 0.8, 1)
+                    scaleAnimation.toValue = CATransform3DIdentity
+                    scaleAnimation.duration = 0.2
+                    scaleAnimation.timingFunction = CAMediaTimingFunction(name: .easeOut)
+                    pointLayer.add(scaleAnimation, forKey: "transform")
+                }
             } else {
                 dashLayer.path = nil
                 dashGradientLayer.opacity = 0
