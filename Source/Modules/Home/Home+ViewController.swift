@@ -47,6 +47,11 @@ extension Home {
             screen.snp.makeConstraints { make in
                 make.edges.equalToSuperview()
             }
+            
+            // Adiciona o callback para o filtro de tempo
+            screen.onTimeFilterSelected = { [weak self] filter in
+                self?.viewModel.updateTimeFilter(filter)
+            }
         }
 
         private func bindViewModel() {

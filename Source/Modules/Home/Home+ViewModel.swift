@@ -17,7 +17,7 @@ extension Home {
 
         @Published var selectedCrypto: String = "btc"
         @Published var selectedCurrency: String = "brl"
-        @Published var selectedStartDate: Date = Calendar.current.date(byAdding: .day, value: -90, to: .now) ?? .now
+        @Published var selectedStartDate: Date = Calendar.current.date(byAdding: .day, value: -3, to: .now) ?? .now
         @Published var selectedEndDate: Date = .now
 
         private let repository: Repository
@@ -59,13 +59,15 @@ extension Home {
             sourceAsset: String,
             targetAsset: String,
             startDate: Date,
-            endDate: Date
+            endDate: Date,
+            periodId: String = "4HRS"
         ) {
             repository.fetchExchangePeriod(
                 sourceAsset: sourceAsset,
                 targetAsset: targetAsset,
                 startedDate: startDate,
-                endDate: endDate
+                endDate: endDate,
+                periodId: periodId
             ) { [weak self] result in
                 switch result {
                 case .success(let periods):
@@ -84,6 +86,66 @@ extension Home {
                 case .failure(let error):
                     self?.error = error
                 }
+            }
+        }
+
+        func updateTimeFilter(_ filter: Home.TimeFilterView.TimeFilter) {
+            let calendar = Calendar.current
+            let now = Date()
+            
+            let startDate: Date
+            var periodId = "1DAY"
+            
+            switch filter {
+            case .oneDay:
+                startDate = calendar.date(byAdding: .day, value: -3, to: now) ?? now
+                periodId = "4HRS"
+            case .oneWeek:
+                startDate = calendar.date(byAdding: .day, value: -7, to: now) ?? now
+            case .oneMonth:
+                startDate = calendar.date(byAdding: .month, value: -1, to: now) ?? now
+            case .sixMonths:
+                startDate = calendar.date(byAdding: .month, value: -6, to: now) ?? now
+                periodId = "10DAY"
+            case .oneYear:
+                startDate = calendar.date(byAdding: .year, value: -1, to: now) ?? now
+                periodId = "10DAY"
+            case .fiveYears:
+                startDate = calendar.date(byAdding: .year, value: -5, to: now) ?? now
+                periodId = "10DAY"
+            }
+            
+            selectedStartDate = startDate
+            selectedEndDate = .now
+            
+            dump(selectedStartDate, name: "Now - \(selectedEndDate)")
+            
+            fetchExchangePeriod(
+                sourceAsset: selectedCrypto,
+                targetAsset: selectedCurrency,
+                startDate: startDate,
+                endDate: now,
+                periodId: periodId
+            )
+        }
+        
+        private func formatDateForDisplay(_ date: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+            return formatter.string(from: date)
+        }
+        
+        private func filterPeriods(periods: [Repository.ExchangePeriod], startDate: Date, endDate: Date) -> [Repository.ExchangePeriod] {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+            
+            return periods.filter { period in
+                guard let periodStart = formatter.date(from: period.timePeriodStart),
+                      let periodEnd = formatter.date(from: period.timePeriodEnd) else {
+                    return false
+                }
+                
+                return periodStart >= startDate && periodEnd <= endDate
             }
         }
     }

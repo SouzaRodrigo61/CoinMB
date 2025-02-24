@@ -12,6 +12,9 @@ extension Home {
     class HeaderCell: UICollectionReusableView {        
         static let reuseIdentifier = "Home.HeaderCell"
         
+        // MARK: - Properties
+        var onTimeFilterSelected: ((Home.TimeFilterView.TimeFilter) -> Void)?
+        
         // MARK: - UI Components
         
         private lazy var containerView: UIView = {
@@ -154,21 +157,8 @@ extension Home {
 
         private func setupTimeFilterView() {
             timeFilterView.onFilterSelected = { [weak self] filter in
-                // Aqui você pode adicionar a lógica para filtrar os dados do gráfico
-                switch filter {
-                case .oneDay:
-                    dump("Filtrar por 1 dia")
-                case .oneWeek:
-                    dump("Filtrar por 1 semana")
-                case .oneMonth:
-                    dump("Filtrar por 1 mês")
-                case .sixMonths:
-                    dump("Filtrar por 6 meses")
-                case .oneYear:
-                    dump("Filtrar por 1 ano")
-                case .fiveYears:
-                    dump("Filtrar por 5 anos")
-                }
+                // Agora podemos chamar o callback corretamente
+                self?.onTimeFilterSelected?(filter)
             }
         }
         

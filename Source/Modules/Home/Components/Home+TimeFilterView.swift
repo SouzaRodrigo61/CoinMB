@@ -24,7 +24,7 @@ extension Home {
         var onFilterSelected: ((TimeFilter) -> Void)?
         
         enum TimeFilter: String, CaseIterable {
-            case oneDay = "1D"
+            case oneDay = "3D"
             case oneWeek = "1S"
             case oneMonth = "1M"
             case sixMonths = "6M"

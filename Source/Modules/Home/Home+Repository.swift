@@ -103,6 +103,7 @@ extension Home {
             targetAsset: String = "brl",
             startedDate: Date = Calendar.current.date(byAdding: .day, value: -500, to: .now) ?? .now,
             endDate: Date = .now,
+            periodId: String = "1day",
             completion: @escaping ResponseExchangePeriods
         ) {
             let dateFormatter = ISO8601DateFormatter()
@@ -114,7 +115,7 @@ extension Home {
             let endpoint = "/v1/exchangerate/\(sourceAsset)/\(targetAsset)/history"
             
             let parameters = [
-                "period_id": "1day",
+                "period_id": periodId,
                 "time_start": startDateString,
                 "time_end": endDateString,
                 "limit": "1000"

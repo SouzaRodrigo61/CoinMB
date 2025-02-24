@@ -32,6 +32,7 @@ extension Home {
         private let maxHeaderHeight: CGFloat = 500
         
         private var sections: [Home.View.Section] = []
+        var onTimeFilterSelected: ((Home.TimeFilterView.TimeFilter) -> Void)?
         
         // MARK: - Init
         override init(frame: CGRect) {
@@ -219,7 +220,8 @@ extension Home.View: UICollectionViewDelegate, UICollectionViewDataSource {
             }
         
             if case .header(let contents) = model { 
-                header.configure(model: contents)                
+                header.configure(model: contents)
+                header.onTimeFilterSelected = onTimeFilterSelected
             }
 
             return header
@@ -292,5 +294,4 @@ extension Home.View {
         case header([Home.Repository.ExchangePeriod])
         case content(Home.Repository.CurrentRates.Rate)
     }
-    
 }
