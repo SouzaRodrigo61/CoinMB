@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 extension Home { 
     
@@ -73,14 +74,10 @@ extension Home {
         private func setupScrollView() {
             addSubview(scrollView)
             scrollView.showsHorizontalScrollIndicator = false
-            scrollView.translatesAutoresizingMaskIntoConstraints = false
             
-            NSLayoutConstraint.activate([
-                scrollView.topAnchor.constraint(equalTo: topAnchor),
-                scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
-                scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
-                scrollView.bottomAnchor.constraint(equalTo: bottomAnchor)
-            ])
+            scrollView.snp.makeConstraints { make in
+                make.edges.equalToSuperview()
+            }
         }
         
         private func setupStackView() {
@@ -89,15 +86,14 @@ extension Home {
             stackView.spacing = Design.stackViewSpacing
             stackView.alignment = .center
             stackView.distribution = .fillEqually
-            stackView.translatesAutoresizingMaskIntoConstraints = false
             
-            NSLayoutConstraint.activate([
-                stackView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: Design.verticalPadding),
-                stackView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: Design.horizontalPadding),
-                stackView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -Design.horizontalPadding),
-                stackView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor, constant: -Design.verticalPadding),
-                stackView.heightAnchor.constraint(equalToConstant: Design.buttonHeight)
-            ])
+            stackView.snp.makeConstraints { make in
+                make.top.equalTo(scrollView).offset(Design.verticalPadding)
+                make.leading.equalTo(scrollView).offset(Design.horizontalPadding)
+                make.trailing.equalTo(scrollView).offset(-Design.horizontalPadding)
+                make.bottom.equalTo(scrollView).offset(-Design.verticalPadding)
+                make.height.equalTo(Design.buttonHeight)
+            }
         }
         
         private func setupSelectionIndicator() {
@@ -107,8 +103,13 @@ extension Home {
             selectionIndicator.layer.shadowOffset = CGSize(width: 0, height: 2)
             selectionIndicator.layer.shadowRadius = 4
             selectionIndicator.layer.shadowOpacity = 0.1
-            selectionIndicator.translatesAutoresizingMaskIntoConstraints = false
             insertSubview(selectionIndicator, belowSubview: scrollView)
+            
+            selectionIndicator.snp.makeConstraints { make in
+                make.height.equalTo(Design.buttonHeight)
+                make.width.equalTo(Design.buttonWidth)
+                make.centerY.equalToSuperview()
+            }
         }
         
         private func setupButtons() {
@@ -119,10 +120,13 @@ extension Home {
                 button.setTitleColor(.label, for: .selected)
                 button.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
                 button.addTarget(self, action: #selector(filterButtonTapped(_:)), for: .touchUpInside)
-                button.widthAnchor.constraint(equalToConstant: Design.buttonWidth).isActive = true
                 
                 buttons.append(button)
                 stackView.addArrangedSubview(button)
+                
+                button.snp.makeConstraints { make in
+                    make.width.equalTo(Design.buttonWidth)
+                }
             }
             
             if let firstButton = buttons.first {
@@ -142,8 +146,13 @@ extension Home {
             currentSelectedButton = button
             
             UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
-                self.selectionIndicator.frame = button.frame
-                self.selectionIndicator.center.y = self.bounds.height / 2
+                self.selectionIndicator.snp.remakeConstraints { make in
+                    make.height.equalTo(Design.buttonHeight)
+                    make.width.equalTo(Design.buttonWidth)
+                    make.centerY.equalToSuperview()
+                    make.centerX.equalTo(button)
+                }
+                self.layoutIfNeeded()
             }
             
             if let index = buttons.firstIndex(of: button),

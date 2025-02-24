@@ -61,6 +61,7 @@ extension Home {
             setupView()
             setupConstraints()
             setupChartView()
+            setupTimeFilterView()
         }
         
         required init?(coder: NSCoder) {
