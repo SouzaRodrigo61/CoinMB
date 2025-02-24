@@ -48,6 +48,12 @@ extension Home {
             return gradient
         }()
         
+        private lazy var timeFilterView: TimeFilterView = {
+            let view = TimeFilterView()
+            view.translatesAutoresizingMaskIntoConstraints = false
+            return view
+        }()
+        
         // MARK: - Init
         
         override init(frame: CGRect) {
@@ -67,8 +73,8 @@ extension Home {
             addSubview(containerView)
             containerView.addSubview(amountLabel)
             containerView.addSubview(chartView)
-            
             containerView.addSubview(blurEffectView)
+            containerView.addSubview(timeFilterView)
         }
 
         private func setupChartView() {
@@ -78,13 +84,42 @@ extension Home {
             }
 
             chartView.onDragBegan = { [weak self] in
-                dump("Drag Began", name: "Drag Began")
-                // self?.handleDragBegan()
+                UIView.animate(withDuration: 0.3, animations: {
+                    self?.timeFilterView.alpha = 0
+                    self?.timeFilterView.transform = CGAffineTransform(translationX: 0, y: 44)
+                }) { _ in
+                    self?.timeFilterView.isHidden = true
+                }
             }
 
             chartView.onDragEnded = { [weak self] in
-                dump("Drag Ended", name: "Drag Ended")
-                // self?.handleDragEnded()
+                self?.timeFilterView.isHidden = false
+                UIView.animate(withDuration: 0.3) {
+                    self?.timeFilterView.alpha = 1
+                    self?.timeFilterView.transform = .identity
+                }
+            }
+        }
+
+        private func setupTimeFilterView() {
+            timeFilterView.onFilterSelected = { [weak self] filter in
+                // Aqui você pode adicionar a lógica para filtrar os dados do gráfico
+                switch filter {
+                case .oneDay:
+                    dump("Filtrar por 1 dia")
+                case .oneWeek:
+                    dump("Filtrar por 1 semana")
+                case .oneMonth:
+                    dump("Filtrar por 1 mês")
+                case .sixMonths:
+                    dump("Filtrar por 6 meses")
+                case .oneYear:
+                    dump("Filtrar por 1 ano")
+                case .fiveYears:
+                    dump("Filtrar por 5 anos")
+                case .all:
+                    dump("Mostrar todos os dados")
+                }
             }
         }
         
@@ -102,11 +137,17 @@ extension Home {
                 make.top.equalTo(amountLabel.snp.bottom).offset(0)
                 make.leading.trailing.equalToSuperview().inset(0)
                 make.height.equalTo(200)
-                make.bottom.equalToSuperview().inset(0)
+                make.bottom.equalToSuperview().inset(16)
+            }
+            
+            timeFilterView.snp.makeConstraints { make in
+                make.leading.trailing.equalToSuperview().inset(16)
+                make.bottom.equalToSuperview().inset(8)
+                make.height.equalTo(44)
             }
             
             blurEffectView.snp.makeConstraints { make in
-                make.top.trailing.leading.bottom.equalToSuperview()
+                make.edges.equalToSuperview()
             }
         }
         
