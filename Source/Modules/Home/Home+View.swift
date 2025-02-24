@@ -217,9 +217,7 @@ extension Home.View: UICollectionViewDelegate, UICollectionViewDataSource {
             ) as? Home.HeaderCell else { 
                 return UICollectionReusableView() 
             }
-            
-            dump(model, name: "UICollectionView.elementKindSectionHeader")
-            
+        
             if case .header(let contents) = model { 
                 header.configure(model: contents)                
             }

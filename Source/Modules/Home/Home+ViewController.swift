@@ -61,8 +61,6 @@ extension Home {
             viewModel.$icons
                 .receive(on: DispatchQueue.main)
                 .sink { [weak self] icon in 
-//                    guard let self else { return }
-//                    dump(icon, name: "$icons")
                 }
                 .store(in: &viewModel.cancellables)
         }

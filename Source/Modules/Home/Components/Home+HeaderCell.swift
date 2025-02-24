@@ -202,7 +202,7 @@ extension Home {
             chartView.snp.makeConstraints { make in
                 make.bottom.equalTo(safeAreaLayoutGuide).offset(-16)
                 make.leading.trailing.equalToSuperview()
-                make.height.equalTo(200)
+                make.height.equalTo(180)
             }
             
             timeFilterView.snp.makeConstraints { make in

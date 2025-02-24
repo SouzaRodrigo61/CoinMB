@@ -16,8 +16,8 @@ extension Home {
         @Published var model: Model?
 
         @Published var selectedCrypto: String = "btc"
-        @Published var selectedCurrency: String = "usd"
-        @Published var selectedStartDate: Date = Calendar.current.date(byAdding: .day, value: -30, to: .now) ?? .now
+        @Published var selectedCurrency: String = "brl"
+        @Published var selectedStartDate: Date = Calendar.current.date(byAdding: .day, value: -90, to: .now) ?? .now
         @Published var selectedEndDate: Date = .now
 
         private let repository: Repository
@@ -67,9 +67,6 @@ extension Home {
                 startedDate: startDate,
                 endDate: endDate
             ) { [weak self] result in
-                
-                dump(result, name: "fetchExchangePeriod")
-                
                 switch result {
                 case .success(let periods):
                     self?.model?.periods = periods
