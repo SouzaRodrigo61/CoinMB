@@ -20,12 +20,27 @@ extension Home {
             return view
         }()
         
+        private lazy var cryptoNameLabel: UILabel = {
+            let label = UILabel()
+            label.font = .systemFont(ofSize: 16, weight: .medium)
+            label.textColor = .secondaryLabel
+            label.textAlignment = .center
+            return label
+        }()
+        
         private lazy var amountLabel: UILabel = {
             let label = UILabel()
             label.font = .systemFont(ofSize: 32, weight: .bold)
             label.textColor = .label
             label.textAlignment = .center
             return label
+        }()
+        
+        private lazy var trendImageView: UIImageView = {
+            let imageView = UIImageView()
+            imageView.contentMode = .scaleAspectFit
+            imageView.tintColor = .label
+            return imageView
         }()
         
         private lazy var chartView: LineChartView = {
@@ -54,6 +69,8 @@ extension Home {
             return view
         }()
         
+        private var originalAmount: Double = 0
+        
         // MARK: - Init
         
         override init(frame: CGRect) {
@@ -72,32 +89,37 @@ extension Home {
         
         private func setupView() {
             addSubview(containerView)
+            containerView.addSubview(cryptoNameLabel)
             containerView.addSubview(amountLabel)
             containerView.addSubview(chartView)
             containerView.addSubview(blurEffectView)
             containerView.addSubview(timeFilterView)
+            containerView.addSubview(trendImageView)
         }
 
         private func setupChartView() {
             chartView.onPointSelected = { [weak self] index, value in
-                dump(value, name: "Point Selected -> index: \(index)")
-                // self?.handlePointSelected(index: index, value: value)
+                guard let self = self else { return }
+                self.updateAmount(value: Double(value))
             }
 
             chartView.onDragBegan = { [weak self] in
+                guard let self = self else { return }
                 UIView.animate(withDuration: 0.3, animations: {
-                    self?.timeFilterView.alpha = 0
-                    self?.timeFilterView.transform = CGAffineTransform(translationX: 0, y: 44)
+                    self.timeFilterView.alpha = 0
+                    self.timeFilterView.transform = CGAffineTransform(translationX: 0, y: 44)
                 }) { _ in
-                    self?.timeFilterView.isHidden = true
+                    self.timeFilterView.isHidden = true
                 }
             }
 
             chartView.onDragEnded = { [weak self] in
-                self?.timeFilterView.isHidden = false
+                guard let self = self else { return }
+                self.timeFilterView.isHidden = false
                 UIView.animate(withDuration: 0.3) {
-                    self?.timeFilterView.alpha = 1
-                    self?.timeFilterView.transform = .identity
+                    self.timeFilterView.alpha = 1
+                    self.timeFilterView.transform = .identity
+                    self.resetAmountDisplay()
                 }
             }
         }
@@ -127,8 +149,13 @@ extension Home {
                 make.edges.equalToSuperview()
             }
             
+            cryptoNameLabel.snp.makeConstraints { make in
+                make.bottom.equalTo(amountLabel.snp.top).offset(-4)
+                make.leading.trailing.equalToSuperview().inset(16)
+            }
+            
             amountLabel.snp.makeConstraints { make in
-                make.top.equalToSuperview().offset(32)
+                make.top.equalToSuperview().offset(52)
                 make.leading.trailing.equalToSuperview().inset(0)
             }
             
@@ -147,6 +174,12 @@ extension Home {
             
             blurEffectView.snp.makeConstraints { make in
                 make.edges.equalToSuperview()
+            }
+            
+            trendImageView.snp.makeConstraints { make in
+                make.centerY.equalTo(amountLabel)
+                make.leading.equalTo(amountLabel.snp.trailing).offset(8)
+                make.width.height.equalTo(24)
             }
         }
         
@@ -168,13 +201,30 @@ extension Home {
         }
         
         // MARK: - Configuration
-        func configure(model: [Home.Repository.ExchangePeriod]) {
+        func configure(model: [Home.Repository.ExchangePeriod], cryptoName: String = "Bitcoin") {
             guard let dayOperation = model.last else { return }
-            
-            dump(dayOperation, name: "DayOperation - Configure")
-            
-            amountLabel.text = "R$ \(String(format: "%.2f", dayOperation.rateClose))"
+            originalAmount = dayOperation.rateClose
+            cryptoNameLabel.text = cryptoName
+            amountLabel.text = "$ \(String(format: "%.2f", originalAmount))"
             chartView.dataPoints = model.map { CGFloat($0.rateClose) }
+        }
+
+        private func updateAmount(value: Double) {
+            let isHigher = value > originalAmount
+            let isEqual = value == originalAmount
+            
+            amountLabel.text = "$ \(String(format: "%.2f", value))"
+            amountLabel.textColor = isEqual ? .label : (isHigher ? .systemGreen : .systemRed)
+            
+            let imageName = isEqual ? "" : (isHigher ? "chevron.up" : "chevron.down")
+            trendImageView.image = imageName.isEmpty ? nil : UIImage(systemName: imageName)
+            trendImageView.tintColor = amountLabel.textColor
+        }
+
+        private func resetAmountDisplay() {
+            amountLabel.text = "$ \(String(format: "%.2f", originalAmount))"
+            amountLabel.textColor = .label
+            trendImageView.image = nil
         }
     } 
 }
