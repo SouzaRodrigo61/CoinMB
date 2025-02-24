@@ -20,6 +20,21 @@ extension Home {
             return view
         }()
         
+        private lazy var containerCryptoView: UIView = {
+            let view = UIView()
+            view.backgroundColor = .systemBackground
+            view.layer.cornerRadius = 16
+            view.clipsToBounds = true
+            
+            // Sombra suave
+            view.layer.shadowColor = UIColor.black.cgColor
+            view.layer.shadowOffset = CGSize(width: 0, height: 2)
+            view.layer.shadowRadius = 6
+            view.layer.shadowOpacity = 0.1
+            
+            return view
+        }()
+        
         private lazy var cryptoNameLabel: UILabel = {
             let label = UILabel()
             label.font = .systemFont(ofSize: 16, weight: .medium)
@@ -90,12 +105,15 @@ extension Home {
         
         private func setupView() {
             addSubview(containerView)
-            containerView.addSubview(cryptoNameLabel)
-            containerView.addSubview(amountLabel)
+            containerView.addSubview(containerCryptoView)
+            
+            containerCryptoView.addSubview(cryptoNameLabel)
+            containerCryptoView.addSubview(amountLabel)
+            containerCryptoView.addSubview(trendImageView)
+            
             containerView.addSubview(chartView)
             containerView.addSubview(blurEffectView)
             containerView.addSubview(timeFilterView)
-            containerView.addSubview(trendImageView)
         }
 
         private func setupChartView() {
@@ -159,51 +177,47 @@ extension Home {
                 make.edges.equalToSuperview()
             }
             
-            cryptoNameLabel.snp.makeConstraints { make in
-                make.bottom.equalTo(amountLabel.snp.top).offset(-4)
+            containerCryptoView.snp.makeConstraints { make in
+                make.top.equalTo(safeAreaLayoutGuide).offset(16)
                 make.leading.trailing.equalToSuperview().inset(16)
+                make.bottom.equalToSuperview()
+            }
+            
+            cryptoNameLabel.snp.makeConstraints { make in
+                make.top.equalTo(containerCryptoView).offset(12)
+                make.leading.trailing.equalTo(containerCryptoView).inset(16)
             }
             
             amountLabel.snp.makeConstraints { make in
-                make.top.equalToSuperview().offset(52)
-                make.centerX.equalToSuperview()
-                make.leading.greaterThanOrEqualToSuperview().inset(16)
+                make.top.equalTo(cryptoNameLabel.snp.bottom).offset(4)
+                make.centerX.equalTo(containerCryptoView)
+            }
+            
+            trendImageView.snp.makeConstraints { make in
+                make.centerY.equalTo(amountLabel)
+                make.leading.equalTo(amountLabel.snp.trailing).offset(8)
+                make.width.height.equalTo(20) // Ícone um pouco menor
             }
             
             chartView.snp.makeConstraints { make in
-                make.top.equalTo(amountLabel.snp.bottom).offset(0)
-                make.leading.trailing.equalToSuperview().inset(0)
+                make.bottom.equalTo(safeAreaLayoutGuide).offset(-16)
+                make.leading.trailing.equalToSuperview()
                 make.height.equalTo(200)
-                make.bottom.equalToSuperview().inset(16)
             }
             
             timeFilterView.snp.makeConstraints { make in
                 make.leading.trailing.equalToSuperview().inset(16)
-                make.bottom.equalToSuperview().inset(8)
+                make.bottom.equalTo(safeAreaLayoutGuide).inset(8) // Respeitar safe area
                 make.height.equalTo(44)
             }
             
             blurEffectView.snp.makeConstraints { make in
                 make.edges.equalToSuperview()
             }
-            
-            trendImageView.snp.makeConstraints { make in
-                make.centerY.equalTo(amountLabel)
-                make.leading.equalTo(amountLabel.snp.trailing).offset(8)
-                make.width.height.equalTo(24)
-            }
         }
         
         override func layoutSubviews() {
-            CATransaction.begin()
-            CATransaction.setDisableActions(true)
             super.layoutSubviews()
-            let gradientHeight = bounds.height * 0.4
-            bottomGradientLayer.frame = CGRect(
-                x: 0,
-                y: bounds.height - gradientHeight, width: bounds.width, height: gradientHeight
-            )
-            CATransaction.commit()
         }
 
         func updateBlur(alpha: CGFloat) {
