@@ -22,7 +22,7 @@ extension Home {
         var onDragBegan: (() -> Void)?
         var onDragEnded: (() -> Void)?
         
-        var lineColor: UIColor = UIColor(red: 0.45, green: 0, blue: 0.87, alpha: 1.0) { // Cor roxa do Nubank
+        var lineColor: UIColor = UIColor(red: 0.45, green: 0, blue: 0.87, alpha: 1.0) {
             didSet {
                 updateColors()
             }
