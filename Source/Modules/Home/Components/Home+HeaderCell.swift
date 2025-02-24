@@ -70,6 +70,7 @@ extension Home {
         }()
         
         private var originalAmount: Double = 0
+        private var chartData: [Home.Repository.ExchangePeriod] = []
         
         // MARK: - Init
         
@@ -99,8 +100,17 @@ extension Home {
 
         private func setupChartView() {
             chartView.onPointSelected = { [weak self] index, value in
-                guard let self = self else { return }
-                self.updateAmount(value: Double(value))
+                guard let self = self,
+                      index < self.chartData.count else { return }
+                let period = self.chartData[index]
+                
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSSS'Z'"
+                dateFormatter.timeZone = TimeZone(abbreviation: "UTC")
+                
+                if let date = dateFormatter.date(from: period.timeClose) {
+                    self.updateAmount(value: Double(value), date: date)
+                }
             }
 
             chartView.onDragBegan = { [weak self] in
@@ -205,27 +215,60 @@ extension Home {
         func configure(model: [Home.Repository.ExchangePeriod], cryptoName: String = "Bitcoin") {
             guard let dayOperation = model.last else { return }
             originalAmount = dayOperation.rateClose
+            chartData = model
             cryptoNameLabel.text = cryptoName
             amountLabel.text = "USD \(String(format: "%.2f", originalAmount))"
             chartView.dataPoints = model.map { CGFloat($0.rateClose) }
         }
 
-        private func updateAmount(value: Double) {
+        private func updateAmount(value: Double, date: Date? = nil) {
             let isHigher = value > originalAmount
             let isEqual = value == originalAmount
             
-            amountLabel.text = "$ \(String(format: "%.2f", value))"
-            amountLabel.textColor = isEqual ? .label : (isHigher ? .systemGreen : .systemRed)
+            let numberFormatter = NumberFormatter()
+            numberFormatter.numberStyle = .currency
+            numberFormatter.currencySymbol = "USD"
+            numberFormatter.minimumFractionDigits = 2
+            
+            let formattedValue = numberFormatter.string(from: NSNumber(value: value)) ?? "USD 0.00"
+            
+            if let date = date {
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "dd MMM yyyy HH:mm"
+                let dateString = dateFormatter.string(from: date)
+                
+                amountLabel.text = formattedValue
+                cryptoNameLabel.text = dateString
+                
+                // Animar a transição
+                UIView.animate(withDuration: 0.2) {
+                    self.amountLabel.alpha = 0
+                    self.cryptoNameLabel.alpha = 0
+                    self.amountLabel.text = formattedValue
+                    self.cryptoNameLabel.text = dateString
+                }
+            } else {
+                // Restaurar labels originais
+                UIView.animate(withDuration: 0.2) {
+                    self.amountLabel.alpha = 1
+                    self.cryptoNameLabel.alpha = 1
+                    self.amountLabel.text = formattedValue
+                    self.cryptoNameLabel.text = "Bitcoin"
+                }
+                amountLabel.text = formattedValue
+            }
+            
+            let color = isEqual ? UIColor.label : (isHigher ? .systemGreen : .systemRed)
+            amountLabel.textColor = color
+            cryptoNameLabel.textColor = color
             
             let imageName = isEqual ? "" : (isHigher ? "chevron.up" : "chevron.down")
             trendImageView.image = imageName.isEmpty ? nil : UIImage(systemName: imageName)
-            trendImageView.tintColor = amountLabel.textColor
+            trendImageView.tintColor = color
         }
 
         private func resetAmountDisplay() {
-            amountLabel.text = "$ \(String(format: "%.2f", originalAmount))"
-            amountLabel.textColor = .label
-            trendImageView.image = nil
+            updateAmount(value: originalAmount)
         }
     } 
 }
