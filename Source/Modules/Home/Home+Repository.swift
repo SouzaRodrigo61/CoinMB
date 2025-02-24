@@ -101,7 +101,7 @@ extension Home {
         func fetchExchangePeriod(
             sourceAsset: String = "btc",
             targetAsset: String = "brl",
-            startedDate: Date = Calendar.current.date(byAdding: .day, value: -500, to: .now) ?? .now,
+            startedDate: Date = Calendar.current.date(byAdding: .day, value: -1, to: .now) ?? .now,
             endDate: Date = .now,
             periodId: String = "1day",
             completion: @escaping ResponseExchangePeriods
@@ -118,7 +118,7 @@ extension Home {
                 "period_id": periodId,
                 "time_start": startDateString,
                 "time_end": endDateString,
-                "limit": "1000"
+                "limit": "100000"
             ]
             
             maketRateNetwork.get(endpoint, parameters) { result in
