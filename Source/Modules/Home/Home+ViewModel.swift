@@ -91,27 +91,26 @@ extension Home {
 
         func updateTimeFilter(_ filter: Home.TimeFilterView.TimeFilter) {
             let calendar = Calendar.current
-            let now = Date()
             
             let startDate: Date
             var periodId = "1DAY"
             
             switch filter {
             case .oneDay:
-                startDate = calendar.date(byAdding: .day, value: -3, to: now) ?? now
+                startDate = calendar.date(byAdding: .day, value: -3, to: .now) ?? .now
                 periodId = "4HRS"
             case .oneWeek:
-                startDate = calendar.date(byAdding: .day, value: -7, to: now) ?? now
+                startDate = calendar.date(byAdding: .day, value: -7, to: .now) ?? .now
             case .oneMonth:
-                startDate = calendar.date(byAdding: .month, value: -1, to: now) ?? now
+                startDate = calendar.date(byAdding: .month, value: -1, to: .now) ?? .now
             case .sixMonths:
-                startDate = calendar.date(byAdding: .month, value: -6, to: now) ?? now
+                startDate = calendar.date(byAdding: .month, value: -6, to: .now) ?? .now
                 periodId = "10DAY"
             case .oneYear:
-                startDate = calendar.date(byAdding: .year, value: -1, to: now) ?? now
+                startDate = calendar.date(byAdding: .year, value: -1, to: .now) ?? .now
                 periodId = "10DAY"
             case .fiveYears:
-                startDate = calendar.date(byAdding: .year, value: -5, to: now) ?? now
+                startDate = calendar.date(byAdding: .year, value: -5, to: .now) ?? .now
                 periodId = "10DAY"
             }
             
@@ -124,7 +123,7 @@ extension Home {
                 sourceAsset: selectedCrypto,
                 targetAsset: selectedCurrency,
                 startDate: startDate,
-                endDate: now,
+                endDate: .now,
                 periodId: periodId
             )
         }
