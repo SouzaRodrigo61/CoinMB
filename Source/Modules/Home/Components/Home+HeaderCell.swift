@@ -161,15 +161,13 @@ extension Home {
             )
             CATransaction.commit()
         }
-        
-        
 
         func updateBlur(alpha: CGFloat) {
             blurEffectView.alpha = alpha
+            timeFilterView.alpha = 1 - alpha
         }
         
         // MARK: - Configuration
-        
         func configure(model: [Home.Repository.ExchangePeriod]) {
             guard let dayOperation = model.last else { return }
             

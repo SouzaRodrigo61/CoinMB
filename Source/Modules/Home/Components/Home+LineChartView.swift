@@ -17,6 +17,8 @@ extension Home {
         private let animationDuration: TimeInterval = 1.2
         private var selectedPointIndex: Int?
         private var isDragging = false
+        private let feedbackGenerator = UISelectionFeedbackGenerator()
+        private var lastSelectedIndex: Int?
         
         var onPointSelected: ((Int, CGFloat) -> Void)?
         var onDragBegan: (() -> Void)?
@@ -129,6 +131,7 @@ extension Home {
             
             switch gesture.state {
             case .began:
+                feedbackGenerator.prepare()
                 isDragging = true
                 onDragBegan?()
                 updateSelectedPoint(at: location)
@@ -138,6 +141,7 @@ extension Home {
                 isDragging = false
                 onDragEnded?()
                 selectedPointIndex = nil
+                lastSelectedIndex = nil
                 setNeedsLayout()
             default:
                 break
@@ -146,6 +150,8 @@ extension Home {
         
         @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
             let location = gesture.location(in: self)
+            feedbackGenerator.prepare()
+            feedbackGenerator.selectionChanged()
             isDragging = true
             onDragBegan?()
             updateSelectedPoint(at: location)
@@ -157,6 +163,11 @@ extension Home {
             let horizontalGap = bounds.width / CGFloat(dataPoints.count - 1)
             let index = Int((location.x / horizontalGap).rounded())
             let clampedIndex = max(0, min(index, dataPoints.count - 1))
+            
+            if lastSelectedIndex != clampedIndex {
+                feedbackGenerator.selectionChanged()
+                lastSelectedIndex = clampedIndex
+            }
             
             selectedPointIndex = clampedIndex
             onPointSelected?(clampedIndex, dataPoints[clampedIndex])
