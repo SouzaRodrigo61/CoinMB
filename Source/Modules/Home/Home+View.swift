@@ -35,6 +35,9 @@ extension Home {
 
         private var viewModel: Home.ViewModel.Model? = nil
         
+        private var originalRates: [Home.Repository.CurrentRates.Rate] = []
+        private var filteredRates: [Home.Repository.CurrentRates.Rate] = []
+        
         // MARK: - Init
         override init(frame: CGRect) {
             super.init(frame: frame)
@@ -80,14 +83,30 @@ extension Home {
 extension Home.View {
     func configure(with model: Home.ViewModel.Model) {
         self.viewModel = model
+        self.originalRates = model.rates // Guarda os rates originais
+        self.filteredRates = model.rates // Inicialmente, filtered = original
 
-        self.sections.removeAll() // Limpa as seções anteriores
+        self.sections.removeAll()
         self.sections.append(.header(.header(model.periods)))
         self.sections.append(.content(
-            model.rates.map { .content($0) }
+            filteredRates.map { .content($0) }
         ))
         
         self.collectionView.reloadData()
+    }
+    
+    private func filterRates(with searchText: String) {
+        if searchText.isEmpty {
+            filteredRates = originalRates
+        } else {
+            filteredRates = originalRates.filter { rate in
+                let searchLower = searchText.lowercased()
+                return rate.assetIdQuote.lowercased().contains(searchLower)
+            }
+        }
+        
+        sections[1] = .content(filteredRates.map { .content($0) })
+        collectionView.reloadSections(IndexSet(integer: 1))
     }
 }
 
@@ -152,7 +171,7 @@ extension Home.View {
 
             let headerSize = NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1.0),
-                heightDimension: .absolute(80)
+                heightDimension: .absolute(120)
             )
             let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(
                 layoutSize: headerSize,
@@ -256,6 +275,10 @@ extension Home.View: UICollectionViewDelegate, UICollectionViewDataSource {
                 title: "Principais Criptomoedas",
                 subtitle: "Acompanhe as cotações em tempo real"
             )
+            
+            header.onSearchTextChanged = { [weak self] searchText in
+                self?.filterRates(with: searchText)
+            }
 
             return header
         }

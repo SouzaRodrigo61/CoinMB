@@ -95,7 +95,18 @@ extension Home {
         
         func configure(with model: Home.Repository.CurrentRates.Rate, iconUrl: String? = nil) {
             assetLabel.text = model.assetIdQuote
-            rateLabel.text = String(format: "%.2f", model.rate)
+            
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .currency
+            formatter.currencyCode = "USD"
+            formatter.minimumFractionDigits = 2
+            formatter.maximumFractionDigits = 2
+            
+            if let formattedRate = formatter.string(from: NSNumber(value: model.rate)) {
+                rateLabel.text = formattedRate
+            } else {
+                rateLabel.text = String(format: "%.2f", model.rate)
+            }
 
             if let iconUrl = iconUrl {
                 loadImage(from: iconUrl)
