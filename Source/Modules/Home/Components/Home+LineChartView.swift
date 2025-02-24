@@ -39,6 +39,8 @@ extension Home {
         private let lineLayer = CAShapeLayer()
         private let dashLayer = CAShapeLayer()
         private let dashGradientLayer = CAGradientLayer()
+        private let highlightLineLayer = CAShapeLayer()
+        private let pointShadowLayer = CAShapeLayer()
         
         // MARK: - Init
         override init(frame: CGRect) {
@@ -56,7 +58,9 @@ extension Home {
             
             layer.addSublayer(gradientLayer)
             layer.addSublayer(lineLayer)
+            layer.addSublayer(highlightLineLayer)
             layer.addSublayer(dashGradientLayer)
+            layer.addSublayer(pointShadowLayer)
             layer.addSublayer(pointLayer)
             
             lineLayer.lineWidth = lineWidth
@@ -92,6 +96,19 @@ extension Home {
             dashLayer.strokeColor = UIColor.white.cgColor
             dashGradientLayer.mask = dashLayer
             
+            highlightLineLayer.lineWidth = lineWidth * 2
+            highlightLineLayer.lineCap = .round
+            highlightLineLayer.lineJoin = .round
+            highlightLineLayer.fillColor = nil
+            highlightLineLayer.strokeColor = lineColor.cgColor
+            highlightLineLayer.opacity = 0
+            
+            pointShadowLayer.fillColor = UIColor.black.cgColor
+            pointShadowLayer.shadowColor = UIColor.black.cgColor
+            pointShadowLayer.shadowOffset = .zero
+            pointShadowLayer.shadowOpacity = 0.5
+            pointShadowLayer.shadowRadius = 8
+            
             let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
             let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
             addGestureRecognizer(panGesture)
@@ -123,6 +140,8 @@ extension Home {
                 lineColor.cgColor,
                 UIColor.clear.cgColor
             ]
+            
+            highlightLineLayer.strokeColor = lineColor.cgColor
         }
         
         @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
@@ -237,33 +256,59 @@ extension Home {
             
             if let selectedIndex = selectedPointIndex {
                 let point = points[selectedIndex]
+                
                 let dashPath = UIBezierPath()
                 dashPath.move(to: CGPoint(x: point.x, y: 0))
                 dashPath.addLine(to: CGPoint(x: point.x, y: bounds.height))
-                
                 dashLayer.path = dashPath.cgPath
                 dashGradientLayer.frame = bounds
-                dashGradientLayer.opacity = 1.0
+                dashGradientLayer.opacity = isDragging ? 1.0 : 0.0
                 
                 let selectedPointPath = UIBezierPath(arcCenter: point,
                                                    radius: pointRadius,
                                                    startAngle: 0,
                                                    endAngle: .pi * 2,
                                                    clockwise: true)
-                pointLayer.path = selectedPointPath.cgPath
                 
-                if !isDragging {
-                    let scaleAnimation = CABasicAnimation(keyPath: "transform")
-                    scaleAnimation.fromValue = CATransform3DMakeScale(0.8, 0.8, 1)
-                    scaleAnimation.toValue = CATransform3DIdentity
-                    scaleAnimation.duration = 0.2
-                    scaleAnimation.timingFunction = CAMediaTimingFunction(name: .easeOut)
-                    pointLayer.add(scaleAnimation, forKey: "transform")
+                pointShadowLayer.path = selectedPointPath.cgPath
+                pointShadowLayer.opacity = isDragging ? 1.0 : 0.0
+                
+                pointLayer.path = selectedPointPath.cgPath
+
+                if isDragging {
+                    let highlightPath = UIBezierPath()
+                    let segmentWidth: CGFloat = bounds.width / CGFloat(points.count - 1)
+                    let startX = max(0, point.x - segmentWidth)
+                    let endX = min(bounds.width, point.x + segmentWidth)
+                    
+                    let startIndex = max(0, selectedIndex - 1)
+                    let endIndex = min(points.count - 1, selectedIndex + 1)
+                    
+                    highlightPath.move(to: points[startIndex])
+                    
+                    if startIndex < selectedIndex {
+                        let controlPoint1 = CGPoint(x: points[startIndex].x + segmentWidth/3, y: points[startIndex].y)
+                        let controlPoint2 = CGPoint(x: point.x - segmentWidth/3, y: point.y)
+                        highlightPath.addCurve(to: point, controlPoint1: controlPoint1, controlPoint2: controlPoint2)
+                    }
+                    
+                    if selectedIndex < endIndex {
+                        let controlPoint1 = CGPoint(x: point.x + segmentWidth/3, y: point.y)
+                        let controlPoint2 = CGPoint(x: points[endIndex].x - segmentWidth/3, y: points[endIndex].y)
+                        highlightPath.addCurve(to: points[endIndex], controlPoint1: controlPoint1, controlPoint2: controlPoint2)
+                    }
+                    
+                    highlightLineLayer.path = highlightPath.cgPath
+                    highlightLineLayer.opacity = 1.0
+                } else {
+                    highlightLineLayer.opacity = 0
                 }
             } else {
                 dashLayer.path = nil
                 dashGradientLayer.opacity = 0
                 pointLayer.path = nil
+                pointShadowLayer.opacity = 0
+                highlightLineLayer.opacity = 0
             }
         }
         
