@@ -32,6 +32,8 @@ extension Home {
         
         private var sections: [Home.View.Section] = []
         var onTimeFilterSelected: ((Home.TimeFilterView.TimeFilter) -> Void)?
+
+        private var viewModel: Home.ViewModel.Model? = nil
         
         // MARK: - Init
         override init(frame: CGRect) {
@@ -77,6 +79,8 @@ extension Home {
 // MARK: - Configuration Methods
 extension Home.View {
     func configure(with model: Home.ViewModel.Model) {
+        self.viewModel = model
+
         self.sections.removeAll() // Limpa as seções anteriores
         self.sections.append(.header(.header(model.periods)))
         self.sections.append(.content(
@@ -85,7 +89,6 @@ extension Home.View {
         
         self.collectionView.reloadData()
     }
-    
 }
 
 // MARK: - UICollectionViewLayout
@@ -123,7 +126,7 @@ extension Home.View {
 
             return section
         default:
-            let spacing: CGFloat = 16
+            let spacing: CGFloat = 8
             let contentInsets: NSDirectionalEdgeInsets = NSDirectionalEdgeInsets(
                 top: 0,
                 leading: 0,
@@ -205,10 +208,11 @@ extension Home.View: UICollectionViewDelegate, UICollectionViewDataSource {
             }
             
             if case .content(let model) = items[indexPath.row] { 
-//                dump(model, name: "Model - \(indexPath.row)")
+                if let viewModel = self.viewModel {
+                    let iconUrl = indexPath.row < viewModel.icons.count ? viewModel.icons[indexPath.row].url : nil
+                    cell.configure(with: model, iconUrl: iconUrl)
+                }
             }
-            
-            cell.backgroundColor = .cyan
             return cell
         }
     }
@@ -248,7 +252,10 @@ extension Home.View: UICollectionViewDelegate, UICollectionViewDataSource {
                 return UICollectionReusableView() 
             }
             
-            header.configure(title: "Title", subtitle: "Subtitle")
+            header.configure(
+                title: "Principais Criptomoedas",
+                subtitle: "Acompanhe as cotações em tempo real"
+            )
 
             return header
         }

@@ -10,8 +10,9 @@ import Combine
 
 extension Home {
     class ViewModel: Identifiable {
-        @Published var error: Repository.NetworkError?
-        @Published var icons: Repository.ExchangeIcons?
+        @Published var currentRateError: Repository.NetworkError?
+        @Published var exchangePeriodError: Repository.NetworkError?
+        @Published var exchangeIconError: Repository.NetworkError?
 
         @Published var model: Model?
 
@@ -30,6 +31,7 @@ extension Home {
             self.model = .init(
                 rates: [],
                 periods: [],
+                icons: [],
                 currentCrypto: selectedCrypto
             )
         }
@@ -54,7 +56,7 @@ extension Home {
                 case .success(let currentRates):
                     self?.model?.rates = currentRates.rates
                 case .failure(let error):
-                    self?.error = error
+                    self?.currentRateError = error
                 }
             }
         }
@@ -76,7 +78,7 @@ extension Home {
                 case .success(let periods):
                     self?.model?.periods = periods
                 case .failure(let error):
-                    self?.error = error
+                    self?.exchangePeriodError = error
                 }
             }
         }
@@ -85,9 +87,9 @@ extension Home {
             repository.fetchExchangeIcon(with: 44) { [weak self] result in
                 switch result {
                 case .success(let icons):
-                    self?.icons = icons
+                    self?.model?.icons = icons
                 case .failure(let error):
-                    self?.error = error
+                    self?.exchangeIconError = error
                 }
             }
         }
@@ -159,7 +161,8 @@ extension Home {
 extension Home.ViewModel { 
     struct Model: Equatable, Hashable {
         var rates: [Home.Repository.CurrentRates.Rate]
-        var periods: [Home.Repository.ExchangePeriod]
+        var periods: Home.Repository.ExchangePeriods
+        var icons: Home.Repository.ExchangeIcons
         let currentCrypto: String
         
         struct RateInfo: Equatable, Hashable {

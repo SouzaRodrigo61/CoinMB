@@ -64,11 +64,95 @@ extension Home {
                 }
                 .store(in: &viewModel.cancellables)
             
-            viewModel.$icons
+            viewModel.$currentRateError
                 .receive(on: DispatchQueue.main)
-                .sink { [weak self] icon in 
+                .sink { [weak self] error in
+                    guard let self, let error = error else { return }
+                    self.handleCurrentRateError(error)
                 }
                 .store(in: &viewModel.cancellables)
+            
+            viewModel.$exchangePeriodError
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] error in
+                    guard let self, let error = error else { return }
+                    self.handleExchangePeriodError(error)
+                }
+                .store(in: &viewModel.cancellables)
+            
+            viewModel.$exchangeIconError
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] error in
+                    guard let self, let error = error else { return }
+                    self.handleExchangeIconError(error)
+                }
+                .store(in: &viewModel.cancellables)
+        }
+
+        private func handleCurrentRateError(_ error: Repository.NetworkError) {
+            let title = "Erro na Taxa Atual"
+            let message: String
+            
+            switch error {
+            case .decode(msg: let msg, error: let error):
+                message = msg
+            case .network(let error):
+                message = error.localizedDescription
+            }
+            
+            showErrorAlert(title: title, message: message)
+        }
+        
+        private func handleExchangePeriodError(_ error: Repository.NetworkError) {
+            let title = "Erro no Histórico"
+            let message: String
+            
+            switch error {
+            case .decode(msg: let msg, error: let error):
+                message = msg
+            case .network(let error):
+                message = error.localizedDescription
+            }
+            
+            showErrorAlert(title: title, message: message)
+        }
+        
+        private func handleExchangeIconError(_ error: Repository.NetworkError) {
+            let title = "Erro nos Ícones"
+            let message: String
+            
+            switch error {
+            case .decode(msg: let msg, error: let error):
+                message = msg
+            case .network(let error):
+                message = error.localizedDescription
+            }
+            
+            // Para erros de ícone, podemos apenas logar, já que não é crítico
+            print("Erro de ícone: \(message)")
+        }
+        
+        private func showErrorAlert(title: String, message: String) {
+            let alert = UIAlertController(
+                title: title,
+                message: message,
+                preferredStyle: .alert
+            )
+            
+            alert.addAction(UIAlertAction(
+                title: "OK",
+                style: .default
+            ))
+            
+            alert.addAction(UIAlertAction(
+                title: "Tentar Novamente",
+                style: .default,
+                handler: { [weak self] _ in
+                    self?.viewModel.fetchCurrentRates()
+                }
+            ))
+            
+            present(alert, animated: true)
         }
 
         private func viewModelDidInitialize() {

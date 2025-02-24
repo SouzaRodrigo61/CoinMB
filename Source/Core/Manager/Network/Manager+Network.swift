@@ -43,7 +43,7 @@ extension Manager.Network {
             baseURL: URL(string: "https://rest.coinapi.io")!,
             timeout: 10,
             retryCount: 3, 
-            token: "cfa0e689-7529-4a00-9c84-276be9102ec6"
+            token: "5924401f-d529-4351-a444-0d4a23198079"
         )
     }
 
