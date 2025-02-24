@@ -248,33 +248,49 @@ extension Home {
             
             if let date = date {
                 let dateFormatter = DateFormatter()
-                dateFormatter.dateFormat = "dd MMM yyyy HH:mm"
+                dateFormatter.dateFormat = "dd MMM yyyy"
+                let timeFormatter = DateFormatter()
+                timeFormatter.dateFormat = "HH:mm"
+                
                 let dateString = dateFormatter.string(from: date)
+                let timeString = timeFormatter.string(from: date)
                 
-                amountLabel.text = formattedValue
-                cryptoNameLabel.text = dateString
-                
-                // Animar a transição
-                UIView.animate(withDuration: 0.2) {
-                    self.amountLabel.alpha = 0
-                    self.cryptoNameLabel.alpha = 0
+                // Animar com fade e slide suave
+                UIView.animate(withDuration: 0.3, 
+                              delay: 0,
+                              options: .curveEaseInOut) {
+                    // Slide para cima
+                    self.amountLabel.transform = CGAffineTransform(translationX: 0, y: -5)
+                    self.cryptoNameLabel.transform = CGAffineTransform(translationX: 0, y: -5)
+                    
                     self.amountLabel.text = formattedValue
-                    self.cryptoNameLabel.text = dateString
+                    self.cryptoNameLabel.text = "\(dateString) às \(timeString)"
+                    
+                    // Ajusta opacidade
+                    self.amountLabel.alpha = 0.9
+                    self.cryptoNameLabel.alpha = 0.8
+                } completion: { _ in
+                    UIView.animate(withDuration: 0.2) {
+                        // Retorna à posição original
+                        self.amountLabel.transform = .identity
+                        self.cryptoNameLabel.transform = .identity
+                    }
                 }
             } else {
-                // Restaurar labels originais
-                UIView.animate(withDuration: 0.2) {
+                // Restaurar labels com animação suave
+                UIView.animate(withDuration: 0.3) {
+                    self.amountLabel.transform = .identity
+                    self.cryptoNameLabel.transform = .identity
                     self.amountLabel.alpha = 1
                     self.cryptoNameLabel.alpha = 1
                     self.amountLabel.text = formattedValue
                     self.cryptoNameLabel.text = "Bitcoin"
                 }
-                amountLabel.text = formattedValue
             }
             
             let color = isEqual ? UIColor.label : (isHigher ? .systemGreen : .systemRed)
             amountLabel.textColor = color
-            cryptoNameLabel.textColor = color
+            cryptoNameLabel.textColor = color.withAlphaComponent(0.8) // Texto da data um pouco mais suave
             
             let imageName = isEqual ? "" : (isHigher ? "chevron.up" : "chevron.down")
             trendImageView.image = imageName.isEmpty ? nil : UIImage(systemName: imageName)
