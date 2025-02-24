@@ -32,7 +32,6 @@ extension Home {
             case fiveYears = "5A"
         }
         
-        // Constantes de design
         private enum Design {
             static let cornerRadius: CGFloat = 24
             static let buttonHeight: CGFloat = 36
@@ -41,7 +40,6 @@ extension Home {
             static let horizontalPadding: CGFloat = 16
             static let verticalPadding: CGFloat = 8
             
-            // Novas constantes de animação
             static let normalAnimationDuration: TimeInterval = 0.5
             static let dragAnimationDuration: TimeInterval = 0.25
             static let springDamping: CGFloat = 0.7
@@ -132,10 +130,8 @@ extension Home {
                 }
             }
             
-            // Garantir que o layout seja atualizado antes de posicionar o indicador
             layoutIfNeeded()
             
-            // Selecionar o primeiro botão após o layout estar pronto
             DispatchQueue.main.async {
                 if let firstButton = self.buttons.first {
                     self.selectionIndicator.snp.makeConstraints { make in
@@ -165,13 +161,11 @@ extension Home {
             case .changed:
                 guard isDragging else { return }
                 
-                // Adicionar um pequeno delay para evitar mudanças muito rápidas
                 NSObject.cancelPreviousPerformRequests(withTarget: self)
                 perform(#selector(checkButtonSelection), with: location, afterDelay: 0.05)
                 
             case .ended, .cancelled:
                 isDragging = false
-                // Feedback tátil final
                 feedbackGenerator.impactOccurred(intensity: 0.5)
                 if let currentButton = currentSelectedButton {
                     selectButton(currentButton)
@@ -216,7 +210,6 @@ extension Home {
         @objc private func filterButtonTapped(_ sender: UIButton) {
             guard sender != currentSelectedButton else { return }
             
-            // Gerar feedback tátil ao tocar
             feedbackGenerator.impactOccurred(intensity: 0.7)
             selectButton(sender)
         }
@@ -228,27 +221,24 @@ extension Home {
             button.isSelected = true
             currentSelectedButton = button
             
-            // Scroll para centralizar o botão selecionado
             let buttonFrame = button.convert(button.bounds, to: scrollView)
             let centerPoint = CGPoint(
                 x: buttonFrame.midX - scrollView.bounds.width / 2,
                 y: 0
             )
             
-            // Animação do scroll mais suave
             let scrollDuration = isDragging ? Design.dragAnimationDuration : Design.normalAnimationDuration
             UIView.animate(withDuration: scrollDuration,
-                          delay: 0,
-                          usingSpringWithDamping: Design.springDamping,
-                          initialSpringVelocity: Design.springVelocity) {
+                           delay: 0,
+                           usingSpringWithDamping: Design.springDamping,
+                           initialSpringVelocity: Design.springVelocity) {
                 self.scrollView.contentOffset = centerPoint
             }
             
-            // Animação do indicador mais suave
             UIView.animate(withDuration: scrollDuration,
-                          delay: 0,
-                          usingSpringWithDamping: Design.springDamping,
-                          initialSpringVelocity: Design.springVelocity) {
+                           delay: 0,
+                           usingSpringWithDamping: Design.springDamping,
+                           initialSpringVelocity: Design.springVelocity) {
                 self.selectionIndicator.snp.remakeConstraints { make in
                     make.height.equalTo(Design.buttonHeight)
                     make.width.equalTo(Design.buttonWidth)

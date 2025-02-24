@@ -16,7 +16,6 @@ extension Home {
         var onTimeFilterSelected: ((Home.TimeFilterView.TimeFilter) -> Void)?
         
         // MARK: - UI Components
-        
         private lazy var containerView: UIView = {
             let view = UIView()
             view.backgroundColor = .systemBackground
@@ -29,7 +28,6 @@ extension Home {
             view.layer.cornerRadius = 16
             view.clipsToBounds = true
             
-            // Sombra suave
             view.layer.shadowColor = UIColor.black.cgColor
             view.layer.shadowOffset = CGSize(width: 0, height: 2)
             view.layer.shadowRadius = 6
@@ -157,7 +155,6 @@ extension Home {
 
         private func setupTimeFilterView() {
             timeFilterView.onFilterSelected = { [weak self] filter in
-                // Agora podemos chamar o callback corretamente
                 self?.onTimeFilterSelected?(filter)
             }
         }
@@ -186,7 +183,7 @@ extension Home {
             trendImageView.snp.makeConstraints { make in
                 make.centerY.equalTo(amountLabel)
                 make.leading.equalTo(amountLabel.snp.trailing).offset(8)
-                make.width.height.equalTo(20) // Ícone um pouco menor
+                make.width.height.equalTo(20)
             }
             
             chartView.snp.makeConstraints { make in
@@ -197,7 +194,7 @@ extension Home {
             
             timeFilterView.snp.makeConstraints { make in
                 make.leading.trailing.equalToSuperview().inset(16)
-                make.bottom.equalTo(safeAreaLayoutGuide).inset(8) // Respeitar safe area
+                make.bottom.equalTo(safeAreaLayoutGuide).inset(8)
                 make.height.equalTo(44)
             }
             

@@ -65,7 +65,6 @@ extension Home {
                 return
             }
             
-            // Função de easing para suavizar a animação
             let easedProgress = progress * (2 - progress)
             let newValue = currentValue + (targetValue - currentValue) * easedProgress
             updateText(newValue)
@@ -75,4 +74,4 @@ extension Home {
             text = formatter.string(from: NSNumber(value: value))
         }
     }
-} 
+}

@@ -43,6 +43,7 @@ extension Home {
 
         private func setupConstraints() {
             view.addSubview(screen)
+            view.backgroundColor = .systemBackground
 
             screen.snp.makeConstraints { make in
                 make.edges.equalToSuperview()
@@ -71,9 +72,7 @@ extension Home {
         }
 
         private func viewModelDidInitialize() {
-            DispatchQueue.global(qos: .background).async {
-                self.viewModel.fetchCurrentRates()
-            }
+            self.viewModel.fetchCurrentRates()
         }
     }
 }

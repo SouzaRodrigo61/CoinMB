@@ -35,14 +35,17 @@ extension Home {
         }
 
         func fetchCurrentRates() {
-            fetchExchangeIcon()
-            fetchCurrentRate(crypto: selectedCrypto)
-            fetchExchangePeriod(
-                sourceAsset: selectedCrypto,
-                targetAsset: selectedCurrency,
-                startDate: selectedStartDate,
-                endDate: selectedEndDate
-            )
+            DispatchQueue.global(qos: .background).async { [weak self] in
+                guard let self else { return }
+                fetchExchangeIcon()
+                fetchCurrentRate(crypto: selectedCrypto)
+                fetchExchangePeriod(
+                    sourceAsset: selectedCrypto,
+                    targetAsset: selectedCurrency,
+                    startDate: selectedStartDate,
+                    endDate: selectedEndDate
+                )
+            }
         }
 
         func fetchCurrentRate(crypto: String) {
@@ -117,13 +120,18 @@ extension Home {
             selectedStartDate = startDate
             selectedEndDate = .now
             
-            fetchExchangePeriod(
-                sourceAsset: selectedCrypto,
-                targetAsset: selectedCurrency,
-                startDate: startDate,
-                endDate: .now,
-                periodId: periodId
-            )
+            
+
+            DispatchQueue.global(qos: .background).async { [weak self] in
+                guard let self else { return }
+                fetchExchangePeriod(
+                    sourceAsset: selectedCrypto,
+                    targetAsset: selectedCurrency,
+                    startDate: startDate,
+                    endDate: .now,
+                    periodId: periodId
+                )
+            }
         }
         
         private func formatDateForDisplay(_ date: Date) -> String {

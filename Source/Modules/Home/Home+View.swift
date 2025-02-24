@@ -13,15 +13,14 @@ extension Home {
         private lazy var collectionView = {
             let collectionView = UICollectionView(
                 frame: .zero, 
-                collectionViewLayout: UICollectionViewCompositionalLayout { 
-                    sectionIndex, _ -> NSCollectionLayoutSection? in
+                collectionViewLayout: UICollectionViewCompositionalLayout { sectionIndex, _ -> NSCollectionLayoutSection? in
                 return self.createSectionLayout(sectionIndex: sectionIndex)
             })
 
             collectionView.backgroundColor = .systemBackground
             collectionView.contentInsetAdjustmentBehavior = .never
-//            collectionView.showsHorizontalScrollIndicator = false
-//            collectionView.showsVerticalScrollIndicator = false
+            collectionView.showsHorizontalScrollIndicator = false
+            collectionView.showsVerticalScrollIndicator = false
 
             collectionView.translatesAutoresizingMaskIntoConstraints = false
             return collectionView
@@ -53,7 +52,7 @@ extension Home {
         
         private func setupConstraints() {
             collectionView.snp.makeConstraints { make in
-                make.top.equalToSuperview()
+                make.top.equalTo(safeAreaLayoutGuide.snp.top)
                 make.leading.trailing.equalToSuperview()
                 make.bottom.equalToSuperview()
             }
@@ -68,6 +67,9 @@ extension Home {
             collectionView.register(Home.HeaderCell.self, 
                                     forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, 
                                     withReuseIdentifier: Home.HeaderCell.reuseIdentifier)
+            collectionView.register(Home.ContentHeader.self, 
+                                    forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, 
+                                    withReuseIdentifier: Home.ContentHeader.reuseIdentifier)
         }
     }
 }
@@ -87,8 +89,7 @@ extension Home.View {
 }
 
 // MARK: - UICollectionViewLayout
-extension Home.View {
-    
+extension Home.View {    
     func createSectionLayout(sectionIndex: Int) -> NSCollectionLayoutSection {
         let section = self.sections[sectionIndex]
 
@@ -107,7 +108,6 @@ extension Home.View {
             let section = NSCollectionLayoutSection(group: group)
             section.interGroupSpacing = 0
 
-            // Configuração do header
             let headerSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0),
                                                     heightDimension: .absolute(340))
             let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(
@@ -125,7 +125,11 @@ extension Home.View {
         default:
             let spacing: CGFloat = 16
             let contentInsets: NSDirectionalEdgeInsets = NSDirectionalEdgeInsets(
-                top: 0, leading: 16, bottom: 0, trailing: 16)
+                top: 0,
+                leading: 0,
+                bottom: 0,
+                trailing: 0
+            )
 
             let itemSize = NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1.0), 
@@ -142,6 +146,18 @@ extension Home.View {
             let section = NSCollectionLayoutSection(group: group)
             section.interGroupSpacing = spacing
             section.contentInsets = contentInsets
+
+            let headerSize = NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1.0),
+                heightDimension: .absolute(80)
+            )
+            let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(
+                layoutSize: headerSize,
+                elementKind: UICollectionView.elementKindSectionHeader,
+                alignment: .top
+            )
+            sectionHeader.pinToVisibleBounds = true
+            section.boundarySupplementaryItems = [sectionHeader]
 
             return section
         }
@@ -178,7 +194,6 @@ extension Home.View: UICollectionViewDelegate, UICollectionViewDataSource {
             ) as? Home.ContentCell else {
                 return UICollectionViewCell()
             }
-            // Configure a célula header aqui se necessário
             return cell
 
         case .content(let items):
@@ -194,7 +209,6 @@ extension Home.View: UICollectionViewDelegate, UICollectionViewDataSource {
             }
             
             cell.backgroundColor = .cyan
-            // Configure a célula com o content aqui
             return cell
         }
     }
@@ -226,7 +240,17 @@ extension Home.View: UICollectionViewDelegate, UICollectionViewDataSource {
 
             return header
         default:
-            return UICollectionReusableView()
+            guard let header = collectionView.dequeueReusableSupplementaryView(
+                ofKind: kind, 
+                withReuseIdentifier: Home.ContentHeader.reuseIdentifier, 
+                for: indexPath
+            ) as? Home.ContentHeader else { 
+                return UICollectionReusableView() 
+            }
+            
+            header.configure(title: "Title", subtitle: "Subtitle")
+
+            return header
         }
     }
     
@@ -276,7 +300,7 @@ extension Home.View: UICollectionViewDelegate, UICollectionViewDataSource {
                 let blurAlpha = min(90, offsetY / 190)
                 header.updateBlur(alpha: blurAlpha)
             }
-            // Força a atualização do layout para sincronizar as animações
+            
             header.setNeedsLayout()
             header.layoutIfNeeded()
         }
