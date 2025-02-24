@@ -54,6 +54,7 @@ extension Home {
             super.init(frame: frame)
             setupView()
             setupConstraints()
+            setupChartView()
         }
         
         required init?(coder: NSCoder) {
@@ -69,6 +70,23 @@ extension Home {
             
             containerView.addSubview(blurEffectView)
         }
+
+        private func setupChartView() {
+            chartView.onPointSelected = { [weak self] index, value in
+                dump(value, name: "Point Selected -> index: \(index)")
+                // self?.handlePointSelected(index: index, value: value)
+            }
+
+            chartView.onDragBegan = { [weak self] in
+                dump("Drag Began", name: "Drag Began")
+                // self?.handleDragBegan()
+            }
+
+            chartView.onDragEnded = { [weak self] in
+                dump("Drag Ended", name: "Drag Ended")
+                // self?.handleDragEnded()
+            }
+        }
         
         private func setupConstraints() {
             containerView.snp.makeConstraints { make in
@@ -83,7 +101,7 @@ extension Home {
             chartView.snp.makeConstraints { make in
                 make.top.equalTo(amountLabel.snp.bottom).offset(0)
                 make.leading.trailing.equalToSuperview().inset(0)
-                make.height.equalTo(100)
+                make.height.equalTo(200)
                 make.bottom.equalToSuperview().inset(0)
             }
             

@@ -114,8 +114,8 @@ extension Home {
             let endpoint = "/v1/exchangerate/\(sourceAsset)/\(targetAsset)/history"
             
             let parameters = [
-                "period_id": "1day",
-                "time_start": startDateString,
+                "period_id": "10day",
+                "time_start": "2024-01-01",
                 "time_end": endDateString
             ]
             
