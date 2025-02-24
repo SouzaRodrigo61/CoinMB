@@ -37,7 +37,7 @@ extension Home {
             static let buttonHeight: CGFloat = 36
             static let buttonWidth: CGFloat = 48
             static let stackViewSpacing: CGFloat = 12
-            static let horizontalPadding: CGFloat = 12
+            static let horizontalPadding: CGFloat = 16
             static let verticalPadding: CGFloat = 8
         }
         
@@ -85,13 +85,12 @@ extension Home {
             stackView.axis = .horizontal
             stackView.spacing = Design.stackViewSpacing
             stackView.alignment = .center
-            stackView.distribution = .fillEqually
+            stackView.distribution = .equalSpacing
             
             stackView.snp.makeConstraints { make in
-                make.top.equalTo(scrollView).offset(Design.verticalPadding)
+                make.centerY.equalToSuperview()
                 make.leading.equalTo(scrollView).offset(Design.horizontalPadding)
                 make.trailing.equalTo(scrollView).offset(-Design.horizontalPadding)
-                make.bottom.equalTo(scrollView).offset(-Design.verticalPadding)
                 make.height.equalTo(Design.buttonHeight)
             }
         }
@@ -109,6 +108,9 @@ extension Home {
                 make.height.equalTo(Design.buttonHeight)
                 make.width.equalTo(Design.buttonWidth)
                 make.centerY.equalToSuperview()
+                if let firstButton = buttons.first {
+                    make.centerX.equalTo(firstButton)
+                }
             }
         }
         
@@ -121,11 +123,16 @@ extension Home {
                 button.titleLabel?.font = .systemFont(ofSize: 15, weight: .semibold)
                 button.addTarget(self, action: #selector(filterButtonTapped(_:)), for: .touchUpInside)
                 
+                button.frame = CGRect(x: 0, y: 0, width: Design.buttonWidth, height: Design.buttonHeight)
+                button.contentEdgeInsets = .zero
+                button.titleEdgeInsets = .zero
+                
                 buttons.append(button)
                 stackView.addArrangedSubview(button)
                 
                 button.snp.makeConstraints { make in
                     make.width.equalTo(Design.buttonWidth)
+                    make.height.equalTo(Design.buttonHeight)
                 }
             }
             
@@ -145,12 +152,19 @@ extension Home {
             button.isSelected = true
             currentSelectedButton = button
             
+            let buttonFrame = button.convert(button.bounds, to: scrollView)
+            let centerPoint = CGPoint(
+                x: buttonFrame.midX - scrollView.bounds.width / 2,
+                y: 0
+            )
+            scrollView.setContentOffset(centerPoint, animated: true)
+            
             UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
                 self.selectionIndicator.snp.remakeConstraints { make in
                     make.height.equalTo(Design.buttonHeight)
                     make.width.equalTo(Design.buttonWidth)
                     make.centerY.equalToSuperview()
-                    make.centerX.equalTo(button)
+                    make.centerX.equalTo(button.snp.centerX)
                 }
                 self.layoutIfNeeded()
             }
