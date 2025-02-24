@@ -118,8 +118,6 @@ extension Home {
                     dump("Filtrar por 1 ano")
                 case .fiveYears:
                     dump("Filtrar por 5 anos")
-                case .all:
-                    dump("Mostrar todos os dados")
                 }
             }
         }

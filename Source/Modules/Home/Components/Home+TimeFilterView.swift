@@ -15,7 +15,7 @@ extension Home {
         private let scrollView = UIScrollView()
         private let stackView = UIStackView()
         private let selectionIndicator = UIView()
-        private let feedbackGenerator = UIImpactFeedbackGenerator(style: .light)
+        private let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
         
         private var buttons: [UIButton] = []
         private var currentSelectedButton: UIButton?
@@ -30,7 +30,6 @@ extension Home {
             case sixMonths = "6M"
             case oneYear = "1A"
             case fiveYears = "5A"
-            case all = "All"
         }
         
         // Constantes de design
@@ -172,7 +171,8 @@ extension Home {
                 
             case .ended, .cancelled:
                 isDragging = false
-                // Animação final mais suave quando solta
+                // Feedback tátil final
+                feedbackGenerator.impactOccurred(intensity: 0.5)
                 if let currentButton = currentSelectedButton {
                     selectButton(currentButton)
                 }
@@ -187,8 +187,9 @@ extension Home {
             
             if let closestButton = findClosestButton(to: point) {
                 if closestButton != currentSelectedButton {
-                    feedbackGenerator.impactOccurred(intensity: 0.5)
+                    feedbackGenerator.impactOccurred(intensity: 0.3)
                     selectButton(closestButton)
+                    feedbackGenerator.prepare()
                 }
             }
         }
@@ -214,6 +215,9 @@ extension Home {
         // MARK: - Actions
         @objc private func filterButtonTapped(_ sender: UIButton) {
             guard sender != currentSelectedButton else { return }
+            
+            // Gerar feedback tátil ao tocar
+            feedbackGenerator.impactOccurred(intensity: 0.7)
             selectButton(sender)
         }
         
