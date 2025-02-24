@@ -100,9 +100,14 @@ extension Home {
         }
         
         private func updateColors() {
+            let isDarkMode = traitCollection.userInterfaceStyle == .dark
+            
+            let startAlpha: CGFloat = isDarkMode ? 0.25 : 0.15
+            let middleAlpha: CGFloat = isDarkMode ? 0.15 : 0.05
+            
             gradientLayer.colors = [
-                lineColor.withAlphaComponent(0.15).cgColor,
-                lineColor.withAlphaComponent(0.05).cgColor,
+                lineColor.withAlphaComponent(startAlpha).cgColor,
+                lineColor.withAlphaComponent(middleAlpha).cgColor,
                 UIColor.clear.cgColor
             ]
             gradientLayer.locations = [0, 0.5, 1.0]
@@ -259,6 +264,13 @@ extension Home {
             gradientLayer.add(fadeAnimation, forKey: "fadeAnimation")
             lineLayer.add(animation, forKey: "lineAnimation")
             pointLayer.add(animation, forKey: "pointsAnimation")
+        }
+        
+        override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+            super.traitCollectionDidChange(previousTraitCollection)
+            if traitCollection.userInterfaceStyle != previousTraitCollection?.userInterfaceStyle {
+                updateColors()
+            }
         }
     } 
 }
