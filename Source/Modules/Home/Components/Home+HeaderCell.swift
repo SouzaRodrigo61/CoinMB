@@ -156,7 +156,8 @@ extension Home {
             
             amountLabel.snp.makeConstraints { make in
                 make.top.equalToSuperview().offset(52)
-                make.leading.trailing.equalToSuperview().inset(0)
+                make.centerX.equalToSuperview()
+                make.leading.greaterThanOrEqualToSuperview().inset(16)
             }
             
             chartView.snp.makeConstraints { make in
@@ -205,7 +206,7 @@ extension Home {
             guard let dayOperation = model.last else { return }
             originalAmount = dayOperation.rateClose
             cryptoNameLabel.text = cryptoName
-            amountLabel.text = "$ \(String(format: "%.2f", originalAmount))"
+            amountLabel.text = "USD \(String(format: "%.2f", originalAmount))"
             chartView.dataPoints = model.map { CGFloat($0.rateClose) }
         }
 
