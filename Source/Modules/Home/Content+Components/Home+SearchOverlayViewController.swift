@@ -151,6 +151,12 @@ extension Home {
             // Configura o estado inicial do cryptoContainer para match com o botão de origem
             cryptoContainer.frame = sourceButtonFrame
             cryptoContainer.layer.cornerRadius = sourceButton?.layer.cornerRadius ?? 16
+            
+            // Configura alpha inicial dos outros elementos
+            blurView.alpha = 0
+            rangeContainer.alpha = 0
+            searchButton.alpha = 0
+            closeButton.alpha = 0
         }
         
         @objc private func handleCryptoTap() {
@@ -179,32 +185,44 @@ extension Home {
             dismissWithAnimation()
         }
         
-        func animateAppearance() {
-            // Guarda o frame final do cryptoContainer
-            let finalFrame = cryptoContainer.frame
-            
-            // Configura estado inicial
-            cryptoContainer.frame = sourceButtonFrame
-            blurView.alpha = 0
-            rangeContainer.alpha = 0
-            searchButton.alpha = 0
-            
-            UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseOut) {
-                self.blurView.alpha = 1
-                self.cryptoContainer.frame = finalFrame
-                self.rangeContainer.alpha = 1
-                self.searchButton.alpha = 1
-            }
-        }
-        
         private func dismissWithAnimation() {
+            // Desabilita as constraints durante a animação
+            cryptoContainer.snp.removeConstraints()
+            
+            // Atualiza o frame do sourceButton caso ele tenha se movido
+            let updatedSourceFrame = sourceButton?.convert(sourceButton?.bounds ?? .zero, to: nil) ?? sourceButtonFrame
+            
             UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseOut) {
-                self.cryptoContainer.frame = self.sourceButtonFrame
+                // Anima para a posição exata do botão de origem
+                self.cryptoContainer.frame = updatedSourceFrame
+                self.cryptoContainer.layer.cornerRadius = self.sourceButton?.layer.cornerRadius ?? 16
+                
+                // Fade out dos outros elementos
                 self.blurView.alpha = 0
                 self.rangeContainer.alpha = 0
                 self.searchButton.alpha = 0
+                self.closeButton.alpha = 0
             } completion: { _ in
                 self.dismiss(animated: false)
+            }
+        }
+        
+        func animateAppearance() {
+            // Guarda o frame inicial
+            let initialFrame = sourceButtonFrame
+            
+            // Configura estado inicial
+            cryptoContainer.frame = initialFrame
+            
+            UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseOut) {
+                self.blurView.alpha = 1
+                self.rangeContainer.alpha = 1
+                self.searchButton.alpha = 1
+                self.closeButton.alpha = 1
+                
+                // Anima para a posição final usando constraints
+                self.setupConstraints()
+                self.view.layoutIfNeeded()
             }
         }
     }
