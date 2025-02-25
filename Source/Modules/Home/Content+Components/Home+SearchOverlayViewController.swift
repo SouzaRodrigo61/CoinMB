@@ -24,6 +24,15 @@ extension Home {
             return view
         }()
         
+        private lazy var overlayContainer: UIView = {
+            let view = UIView()
+            view.backgroundColor = .systemBackground
+            view.layer.cornerRadius = 16
+            view.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+            view.alpha = 0
+            return view
+        }()
+        
         private lazy var closeButton: UIButton = {
             let button = UIButton()
             button.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
@@ -88,10 +97,12 @@ extension Home {
             view.backgroundColor = .clear
             
             view.addSubview(blurView)
-            view.addSubview(closeButton)
-            view.addSubview(cryptoContainer)
-            view.addSubview(rangeContainer)
-            view.addSubview(searchButton)
+            view.addSubview(overlayContainer)
+            
+            overlayContainer.addSubview(closeButton)
+            overlayContainer.addSubview(cryptoContainer)
+            overlayContainer.addSubview(rangeContainer)
+            overlayContainer.addSubview(searchButton)
             
             cryptoContainer.addSubview(cryptoLabel)
             rangeContainer.addSubview(rangeLabel)
@@ -104,37 +115,41 @@ extension Home {
                 make.edges.equalToSuperview()
             }
             
+            overlayContainer.snp.makeConstraints { make in
+                make.edges.equalToSuperview().inset(16)
+            }
+            
             closeButton.snp.makeConstraints { make in
-                make.top.equalTo(view.safeAreaLayoutGuide).offset(16)
-                make.leading.equalToSuperview().offset(16)
+                make.top.equalTo(overlayContainer).offset(16)
+                make.leading.equalTo(overlayContainer).offset(16)
                 make.size.equalTo(32)
             }
             
             cryptoContainer.snp.makeConstraints { make in
                 make.top.equalTo(closeButton.snp.bottom).offset(24)
-                make.leading.trailing.equalToSuperview().inset(16)
+                make.leading.trailing.equalTo(overlayContainer).inset(16)
                 make.height.equalTo(56)
             }
             
             cryptoLabel.snp.makeConstraints { make in
-                make.leading.equalToSuperview().offset(16)
-                make.centerY.equalToSuperview()
+                make.leading.equalTo(cryptoContainer).offset(16)
+                make.centerY.equalTo(cryptoContainer)
             }
             
             rangeContainer.snp.makeConstraints { make in
                 make.top.equalTo(cryptoContainer.snp.bottom).offset(16)
-                make.leading.trailing.equalToSuperview().inset(16)
+                make.leading.trailing.equalTo(overlayContainer).inset(16)
                 make.height.equalTo(56)
             }
             
             rangeLabel.snp.makeConstraints { make in
-                make.leading.equalToSuperview().offset(16)
-                make.centerY.equalToSuperview()
+                make.leading.equalTo(rangeContainer).offset(16)
+                make.centerY.equalTo(rangeContainer)
             }
             
             searchButton.snp.makeConstraints { make in
-                make.leading.trailing.equalToSuperview().inset(16)
-                make.bottom.equalTo(view.safeAreaLayoutGuide).offset(-16)
+                make.leading.trailing.equalTo(overlayContainer).inset(16)
+                make.bottom.equalTo(overlayContainer).offset(-16)
                 make.height.equalTo(48)
             }
         }
@@ -186,53 +201,24 @@ extension Home {
         }
         
         private func dismissWithAnimation() {
-            // Captura o frame atual do cryptoContainer
-            let currentFrame = cryptoContainer.frame
-            
-            // Atualiza o frame do sourceButton caso ele tenha se movido
-            let updatedSourceFrame = sourceButton?.convert(sourceButton?.bounds ?? .zero, to: nil) ?? sourceButtonFrame
-            
-            // Remove todas as constraints exceto do cryptoContainer
-            rangeContainer.snp.removeConstraints()
-            searchButton.snp.removeConstraints()
-            closeButton.snp.removeConstraints()
-            
-            // Configura o frame atual manualmente
-            cryptoContainer.frame = currentFrame
-            
-            // Anima para a posição final
-            UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseOut) {
-                // Remove as constraints do cryptoContainer durante a animação
-                self.cryptoContainer.snp.removeConstraints()
-                self.cryptoContainer.frame = updatedSourceFrame
-                self.cryptoContainer.layer.cornerRadius = self.sourceButton?.layer.cornerRadius ?? 16
-                
-                // Fade out dos outros elementos
+            UIView.animate(withDuration: 0.2, animations: {
                 self.blurView.alpha = 0
-                self.rangeContainer.alpha = 0
-                self.searchButton.alpha = 0
-                self.closeButton.alpha = 0
-            } completion: { _ in
+                self.overlayContainer.alpha = 0
+                self.overlayContainer.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+            }) { _ in
                 self.dismiss(animated: false)
             }
         }
         
         func animateAppearance() {
-            // Guarda o frame inicial
-            let initialFrame = sourceButtonFrame
+            blurView.alpha = 0
+            overlayContainer.alpha = 0
+            overlayContainer.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
             
-            // Configura estado inicial
-            cryptoContainer.frame = initialFrame
-            
-            UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseOut) {
+            UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
                 self.blurView.alpha = 1
-                self.rangeContainer.alpha = 1
-                self.searchButton.alpha = 1
-                self.closeButton.alpha = 1
-                
-                // Anima para a posição final usando constraints
-                self.setupConstraints()
-                self.view.layoutIfNeeded()
+                self.overlayContainer.alpha = 1
+                self.overlayContainer.transform = .identity
             }
         }
     }
