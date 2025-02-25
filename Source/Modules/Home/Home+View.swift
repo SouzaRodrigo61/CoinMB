@@ -171,7 +171,7 @@ extension Home.View {
 
             let headerSize = NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1.0),
-                heightDimension: .absolute(200)
+                heightDimension: .estimated(60)
             )
             let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(
                 layoutSize: headerSize,
@@ -278,8 +278,12 @@ extension Home.View: UICollectionViewDelegate, UICollectionViewDataSource {
                 subtitle: "Acompanhe as cotações em tempo real"
             )
             
-            header.onSearchTextChanged = { [weak self] searchText in
-                self?.filterRates(with: searchText)
+            header.onFilterTapped = { [weak self] in 
+                dump("onFilterTapped")
+            }
+            
+            header.onSearchTapped = { [weak self] in 
+                dump("onSearchTapped")
             }
 
             return header
