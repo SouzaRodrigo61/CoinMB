@@ -18,6 +18,10 @@ extension Home {
             searchBar.placeholder = "Iniciar busca"
             searchBar.searchBarStyle = .minimal
             searchBar.alpha = 0
+            searchBar.delegate = self
+            searchBar.enablesReturnKeyAutomatically = true
+            searchBar.showsCancelButton = true
+            searchBar.searchTextField.backgroundColor = .systemBackground
             return searchBar
         }()
         
@@ -40,10 +44,13 @@ extension Home {
         override func viewDidLoad() {
             super.viewDidLoad()
             setupViews()
+            
+            modalPresentationStyle = .overFullScreen
+            definesPresentationContext = true
         }
         
         private func setupViews() {
-            view.backgroundColor = .systemBackground
+            view.backgroundColor = .clear
             
             view.addSubview(overlayView)
             view.addSubview(searchContainer)
@@ -55,6 +62,8 @@ extension Home {
             searchBar.snp.makeConstraints { make in
                 make.edges.equalToSuperview().inset(UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8))
             }
+            
+            searchBar.searchTextField.becomeFirstResponder()
         }
         
         func animateAppearance() {
@@ -62,7 +71,7 @@ extension Home {
             
             UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseOut) {
                 self.searchContainer.frame = finalFrame
-                self.overlayView.backgroundColor = .systemGray
+                self.overlayView.backgroundColor = .systemBackground
                 self.searchBar.alpha = 1
             } completion: { _ in
                 self.searchBar.becomeFirstResponder()
@@ -87,5 +96,15 @@ extension Home {
                 self.dismiss(animated: false)
             }
         }
+    }
+}
+
+extension Home.SearchOverlayViewController: UISearchBarDelegate {
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.resignFirstResponder()
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        dismissWithAnimation()
     }
 }
