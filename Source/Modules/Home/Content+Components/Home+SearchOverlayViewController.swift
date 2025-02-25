@@ -230,14 +230,25 @@ extension Home {
                 initialOverlayTransform = overlayContainer.transform
                 
             case .changed:
+                let xOffset = touchPoint.x - initialTouchPoint.x
                 let yOffset = touchPoint.y - initialTouchPoint.y
-                let progress = min(1, abs(yOffset) / 200)
                 
-                // Aplica transformação vertical e escala
+                // Calcula o progresso baseado no maior offset (x ou y)
+                let progress = min(1, max(abs(xOffset), abs(yOffset)) / 200)
+                
+                // Aplica transformação e escala
                 let scale = 1.0 - (progress * 0.2)
-                let translation = CGAffineTransform(translationX: 0, y: yOffset)
+                let translation = CGAffineTransform(translationX: xOffset, y: yOffset)
                 let scaling = CGAffineTransform(scaleX: scale, y: scale)
-                overlayContainer.transform = translation.concatenating(scaling)
+                
+                // Adiciona uma leve rotação baseada na direção do drag
+                let angle = (xOffset / 500) * (.pi / 8) // máximo de 22.5 graus
+                let rotation = CGAffineTransform(rotationAngle: angle)
+                
+                // Combina todas as transformações
+                overlayContainer.transform = translation
+                    .concatenating(scaling)
+                    .concatenating(rotation)
                 
                 // Ajusta opacidades
                 blurView.alpha = 1 - progress
@@ -246,11 +257,23 @@ extension Home {
                 
             case .ended, .cancelled:
                 let velocity = gesture.velocity(in: view)
+                let xOffset = touchPoint.x - initialTouchPoint.x
                 let yOffset = touchPoint.y - initialTouchPoint.y
                 
-                if abs(velocity.y) > 500 || abs(yOffset) > 200 {
-                    dismissWithAnimation(velocity: velocity)
+                // Verifica se deve dismissar baseado na velocidade ou distância
+                let shouldDismiss = abs(velocity.x) > 500 || abs(velocity.y) > 500 ||
+                                  abs(xOffset) > 200 || abs(yOffset) > 200
+                
+                if shouldDismiss {
+                    // Determina a direção do dismiss
+                    let isHorizontal = abs(velocity.x) > abs(velocity.y)
+                    let dismissVelocity = CGPoint(
+                        x: isHorizontal ? velocity.x : 0,
+                        y: isHorizontal ? 0 : velocity.y
+                    )
+                    dismissWithAnimation(velocity: dismissVelocity)
                 } else {
+                    // Retorna à posição original com animação spring
                     UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.2) {
                         self.overlayContainer.transform = .identity
                         self.blurView.alpha = 1
