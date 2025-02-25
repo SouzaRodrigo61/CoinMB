@@ -14,6 +14,10 @@ extension Home {
         var sourceButton: UIButton?
         var sourceButtonFrame: CGRect = .zero
         
+        // Propriedades para controle do drag
+        private var initialTouchPoint: CGPoint = .zero
+        private var initialOverlayTransform: CGAffineTransform = .identity
+        
         private let animator = UIViewPropertyAnimator(duration: 0.3, curve: .easeInOut)
         private let matchGeometryNamespace = "SearchOverlay"
         
@@ -37,6 +41,7 @@ extension Home {
             let button = UIButton()
             button.setImage(UIImage(systemName: "xmark.circle.fill"), for: .normal)
             button.tintColor = .gray
+            button.alpha = 0
             button.addTarget(self, action: #selector(handleClose), for: .touchUpInside)
             return button
         }()
@@ -82,6 +87,7 @@ extension Home {
             button.backgroundColor = .systemBlue
             button.setTitle("Buscar", for: .normal)
             button.layer.cornerRadius = 24
+            button.alpha = 0
             button.addTarget(self, action: #selector(handleSearch), for: .touchUpInside)
             return button
         }()
@@ -121,7 +127,7 @@ extension Home {
             
             closeButton.snp.makeConstraints { make in
                 make.top.equalTo(overlayContainer).offset(16)
-                make.leading.equalTo(overlayContainer).offset(16)
+                make.trailing.equalTo(overlayContainer).offset(-16)
                 make.size.equalTo(32)
             }
             
@@ -160,6 +166,14 @@ extension Home {
             
             let rangeTap = UITapGestureRecognizer(target: self, action: #selector(handleRangeTap))
             rangeContainer.addGestureRecognizer(rangeTap)
+            
+            // Adiciona o pan gesture para drag
+            let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture))
+            overlayContainer.addGestureRecognizer(panGesture)
+            
+            // Adiciona tap no blur para dismiss
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleBlurTap))
+            blurView.addGestureRecognizer(tapGesture)
         }
         
         private func setupInitialState() {
@@ -200,25 +214,118 @@ extension Home {
             dismissWithAnimation()
         }
         
-        private func dismissWithAnimation() {
-            UIView.animate(withDuration: 0.2, animations: {
+        @objc private func handleBlurTap(_ gesture: UITapGestureRecognizer) {
+            let location = gesture.location(in: view)
+            if !overlayContainer.frame.contains(location) {
+                dismissWithAnimation()
+            }
+        }
+        
+        @objc private func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
+            let touchPoint = gesture.location(in: view)
+            
+            switch gesture.state {
+            case .began:
+                initialTouchPoint = touchPoint
+                initialOverlayTransform = overlayContainer.transform
+                
+            case .changed:
+                let yOffset = touchPoint.y - initialTouchPoint.y
+                let progress = min(1, abs(yOffset) / 200)
+                
+                // Aplica transformação vertical e escala
+                let scale = 1.0 - (progress * 0.2)
+                let translation = CGAffineTransform(translationX: 0, y: yOffset)
+                let scaling = CGAffineTransform(scaleX: scale, y: scale)
+                overlayContainer.transform = translation.concatenating(scaling)
+                
+                // Ajusta opacidades
+                blurView.alpha = 1 - progress
+                closeButton.alpha = 1 - progress
+                searchButton.alpha = 1 - progress
+                
+            case .ended, .cancelled:
+                let velocity = gesture.velocity(in: view)
+                let yOffset = touchPoint.y - initialTouchPoint.y
+                
+                if abs(velocity.y) > 500 || abs(yOffset) > 200 {
+                    dismissWithAnimation(velocity: velocity)
+                } else {
+                    UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.2) {
+                        self.overlayContainer.transform = .identity
+                        self.blurView.alpha = 1
+                        self.closeButton.alpha = 1
+                        self.searchButton.alpha = 1
+                    }
+                }
+                
+            default:
+                break
+            }
+        }
+        
+        private func dismissWithAnimation(velocity: CGPoint? = nil) {
+            let duration = velocity != nil ? 0.2 : 0.3
+            
+            // Primeiro, fade out dos botões
+            UIView.animate(withDuration: duration * 0.5) {
+                self.closeButton.alpha = 0
+                self.searchButton.alpha = 0
+            }
+            
+            // Depois, animação de saída do container
+            UIView.animate(withDuration: duration, delay: duration * 0.5, options: .curveEaseIn) {
+                if let velocity = velocity {
+                    let translation = CGAffineTransform(translationX: 0,
+                                                      y: velocity.y > 0 ? self.view.bounds.height : -self.view.bounds.height)
+                    let scale = CGAffineTransform(scaleX: 0.8, y: 0.8)
+                    self.overlayContainer.transform = translation.concatenating(scale)
+                } else {
+                    // Se tiver sourceButton, anima de volta para ele
+                    if let sourceFrame = self.sourceButton?.convert(self.sourceButton?.bounds ?? .zero, to: nil) {
+                        self.overlayContainer.transform = CGAffineTransform(translationX: sourceFrame.midX - self.view.bounds.width/2,
+                                                                          y: sourceFrame.midY - self.view.bounds.height/2)
+                            .concatenating(CGAffineTransform(scaleX: 0.3, y: 0.3))
+                    } else {
+                        self.overlayContainer.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+                    }
+                }
+                
                 self.blurView.alpha = 0
                 self.overlayContainer.alpha = 0
-                self.overlayContainer.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-            }) { _ in
+            } completion: { _ in
                 self.dismiss(animated: false)
             }
         }
         
         func animateAppearance() {
+            // Estado inicial
             blurView.alpha = 0
             overlayContainer.alpha = 0
-            overlayContainer.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+            closeButton.alpha = 0
+            searchButton.alpha = 0
             
-            UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
+            // Posição inicial baseada no botão de origem
+            if let sourceFrame = sourceButton?.convert(sourceButton?.bounds ?? .zero, to: nil) {
+                overlayContainer.transform = CGAffineTransform(translationX: sourceFrame.midX - view.bounds.width/2,
+                                                             y: sourceFrame.midY - view.bounds.height/2)
+                    .concatenating(CGAffineTransform(scaleX: 0.3, y: 0.3))
+            } else {
+                overlayContainer.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+                    .concatenating(CGAffineTransform(translationX: 0, y: 50))
+            }
+            
+            // Animação de entrada
+            UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
                 self.blurView.alpha = 1
                 self.overlayContainer.alpha = 1
                 self.overlayContainer.transform = .identity
+            }
+            
+            // Fade in dos botões
+            UIView.animate(withDuration: 0.3, delay: 0.2) {
+                self.closeButton.alpha = 1
+                self.searchButton.alpha = 1
             }
         }
     }
