@@ -106,6 +106,7 @@ extension Home {
                 periodId = "1HRS"
             case .oneWeek:
                 startDate = calendar.date(byAdding: .day, value: -7, to: .now) ?? .now
+                periodId = "4HRS"
             case .oneMonth:
                 startDate = calendar.date(byAdding: .month, value: -1, to: .now) ?? .now
             case .sixMonths:

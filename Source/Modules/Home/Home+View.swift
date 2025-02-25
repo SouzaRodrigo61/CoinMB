@@ -171,7 +171,7 @@ extension Home.View {
 
             let headerSize = NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1.0),
-                heightDimension: .absolute(120)
+                heightDimension: .absolute(200)
             )
             let sectionHeader = NSCollectionLayoutBoundarySupplementaryItem(
                 layoutSize: headerSize,
@@ -228,7 +228,9 @@ extension Home.View: UICollectionViewDelegate, UICollectionViewDataSource {
             
             if case .content(let model) = items[indexPath.row] { 
                 if let viewModel = self.viewModel {
-                    let iconUrl = indexPath.row < viewModel.icons.count ? viewModel.icons[indexPath.row].url : nil
+                    let iconUrl = viewModel.icons.first { 
+                        $0.assetId.lowercased() == model.assetIdQuote.lowercased() 
+                    }?.url
                     cell.configure(with: model, iconUrl: iconUrl)
                 }
             }

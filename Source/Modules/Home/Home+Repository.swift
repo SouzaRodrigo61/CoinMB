@@ -73,7 +73,7 @@ extension Home {
         }
         
         func fetchExchangeIcon(with size: Int, completion: @escaping ResponseExchangeIcons) { 
-            maketRateNetwork.get("/v1/exchanges/icons/\(size)", nil) { result in
+            maketRateNetwork.get("/v1/assets/icons/\(size)", nil) { result in
                 switch result {
                 case .success(let data):
                     do {
@@ -177,11 +177,13 @@ extension Home.Repository {
     
     typealias ExchangeIcons = [ExchangeIcon]
     struct ExchangeIcon: Codable, Equatable, Hashable {
-        let exchangeId: String
+        let exchangeId: String?
+        let assetId: String
         let url: String
         
         enum CodingKeys: String, CodingKey {
             case exchangeId = "exchange_id"
+            case assetId = "asset_id"
             case url
         }
     }

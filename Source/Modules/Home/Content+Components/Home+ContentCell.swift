@@ -115,6 +115,12 @@ extension Home {
             
             if let iconUrl = iconUrl {
                 loadImage(from: iconUrl)
+            } else {
+                // Define o ícone padrão do SF Symbols quando não houver URL
+                if let fallbackImage = UIImage(systemName: "dollarsign.circle.fill") {
+                    iconImageView.image = fallbackImage
+                    iconImageView.tintColor = .systemFill
+                }
             }
         }
         

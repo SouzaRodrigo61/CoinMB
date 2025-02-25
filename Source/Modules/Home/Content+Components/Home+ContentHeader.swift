@@ -15,13 +15,17 @@ extension Home {
         private let containerView: UIView = {
             let view = UIView()
             view.backgroundColor = .systemBackground
+            view.layer.shadowColor = UIColor.black.cgColor
+            view.layer.shadowOpacity = 0.05
+            view.layer.shadowOffset = CGSize(width: 0, height: 2)
+            view.layer.shadowRadius = 8
             return view
         }()
         
         private let stackView: UIStackView = {
             let stack = UIStackView()
             stack.axis = .vertical
-            stack.spacing = 8
+            stack.spacing = 16
             return stack
         }()
         
@@ -42,30 +46,40 @@ extension Home {
         
         private let titleLabel: UILabel = {
             let label = UILabel()
-            label.font = .systemFont(ofSize: 24, weight: .bold)
+            label.font = .systemFont(ofSize: 28, weight: .heavy)
             label.textColor = .label
             return label
         }()
         
         private let subtitleLabel: UILabel = {
             let label = UILabel()
-            label.font = .systemFont(ofSize: 14, weight: .regular)
+            label.font = .systemFont(ofSize: 15, weight: .medium)
             label.textColor = .secondaryLabel
+            label.numberOfLines = 2
             return label
         }()
         
         private let actionButton: UIButton = {
             let button = UIButton(type: .system)
-            button.setImage(UIImage(systemName: "ellipsis.circle.fill"), for: .normal)
-            button.tintColor = .label
-            button.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+            let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .medium)
+            let image = UIImage(systemName: "slider.horizontal.3", withConfiguration: config)
+            button.setImage(image, for: .normal)
+            button.tintColor = .systemIndigo
+            button.backgroundColor = .systemGray6
+            button.layer.cornerRadius = 20
+            button.widthAnchor.constraint(equalToConstant: 40).isActive = true
+            button.heightAnchor.constraint(equalToConstant: 40).isActive = true
             return button
         }()
         
         private let searchContainer: UIView = {
             let view = UIView()
             view.backgroundColor = .systemGray6
-            view.layer.cornerRadius = 12
+            view.layer.cornerRadius = 16
+            view.clipsToBounds = true
+            
+            view.layer.borderWidth = 1
+            view.layer.borderColor = UIColor.separator.withAlphaComponent(0.3).cgColor
             return view
         }()
         
@@ -76,6 +90,13 @@ extension Home {
             searchBar.backgroundColor = .clear
             searchBar.backgroundImage = UIImage()
             searchBar.searchTextField.backgroundColor = .clear
+            
+            searchBar.searchTextField.font = .systemFont(ofSize: 16, weight: .regular)
+            
+            let searchIconConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
+            let searchIcon = UIImage(systemName: "magnifyingglass", withConfiguration: searchIconConfig)
+            searchBar.setImage(searchIcon, for: .search, state: .normal)
+            
             return searchBar
         }()
         
@@ -125,7 +146,12 @@ extension Home {
             searchBar.showsCancelButton = true
             if let cancelButton = searchBar.value(forKey: "cancelButton") as? UIButton {
                 cancelButton.setTitle("Cancelar", for: .normal)
+                cancelButton.titleLabel?.font = .systemFont(ofSize: 16, weight: .medium)
+                cancelButton.tintColor = .systemIndigo
             }
+            
+            searchBar.searchTextField.tintColor = .systemIndigo
+            searchBar.searchTextField.textColor = .label
         }
         
         private func setupConstraints() {
@@ -134,17 +160,17 @@ extension Home {
             }
             
             stackView.snp.makeConstraints { make in
-                make.top.equalToSuperview().offset(16)
-                make.leading.trailing.equalToSuperview().inset(16)
-                make.bottom.equalTo(separatorView.snp.top).offset(-16)
+                make.top.equalToSuperview().offset(24)
+                make.leading.trailing.equalToSuperview().inset(20)
+                make.bottom.equalTo(separatorView.snp.top).offset(-20)
             }
             
             searchContainer.snp.makeConstraints { make in
-                make.height.equalTo(44)
+                make.height.equalTo(52)
             }
             
             searchBar.snp.makeConstraints { make in
-                make.edges.equalToSuperview()
+                make.edges.equalToSuperview().inset(UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8))
             }
             
             separatorView.snp.makeConstraints { make in
