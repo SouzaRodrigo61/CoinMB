@@ -186,14 +186,24 @@ extension Home {
         }
         
         private func dismissWithAnimation() {
-            // Desabilita as constraints durante a animação
-            cryptoContainer.snp.removeConstraints()
+            // Captura o frame atual do cryptoContainer
+            let currentFrame = cryptoContainer.frame
             
             // Atualiza o frame do sourceButton caso ele tenha se movido
             let updatedSourceFrame = sourceButton?.convert(sourceButton?.bounds ?? .zero, to: nil) ?? sourceButtonFrame
             
+            // Remove todas as constraints exceto do cryptoContainer
+            rangeContainer.snp.removeConstraints()
+            searchButton.snp.removeConstraints()
+            closeButton.snp.removeConstraints()
+            
+            // Configura o frame atual manualmente
+            cryptoContainer.frame = currentFrame
+            
+            // Anima para a posição final
             UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, options: .curveEaseOut) {
-                // Anima para a posição exata do botão de origem
+                // Remove as constraints do cryptoContainer durante a animação
+                self.cryptoContainer.snp.removeConstraints()
                 self.cryptoContainer.frame = updatedSourceFrame
                 self.cryptoContainer.layer.cornerRadius = self.sourceButton?.layer.cornerRadius ?? 16
                 
