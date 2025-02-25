@@ -12,40 +12,76 @@ extension Home {
     final class ContentHeader: UICollectionReusableView { 
         static let reuseIdentifier = "Home.ContentHeader"
         
+        private let containerView: UIView = {
+            let view = UIView()
+            view.backgroundColor = .systemBackground
+            return view
+        }()
+        
+        private let stackView: UIStackView = {
+            let stack = UIStackView()
+            stack.axis = .vertical
+            stack.spacing = 8
+            return stack
+        }()
+        
+        private let headerStackView: UIStackView = {
+            let stack = UIStackView()
+            stack.axis = .horizontal
+            stack.alignment = .center
+            stack.distribution = .equalSpacing
+            return stack
+        }()
+        
+        private let titleStackView: UIStackView = {
+            let stack = UIStackView()
+            stack.axis = .vertical
+            stack.spacing = 4
+            return stack
+        }()
+        
         private let titleLabel: UILabel = {
             let label = UILabel()
-            label.font = .systemFont(ofSize: 16, weight: .bold)
+            label.font = .systemFont(ofSize: 24, weight: .bold)
             label.textColor = .label
             return label
         }()
         
         private let subtitleLabel: UILabel = {
             let label = UILabel()
-            label.font = .systemFont(ofSize: 12, weight: .regular)
+            label.font = .systemFont(ofSize: 14, weight: .regular)
             label.textColor = .secondaryLabel
             return label
         }()
         
         private let actionButton: UIButton = {
             let button = UIButton(type: .system)
-            button.setImage(UIImage(systemName: "ellipsis"), for: .normal)
+            button.setImage(UIImage(systemName: "ellipsis.circle.fill"), for: .normal)
             button.tintColor = .label
+            button.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
             return button
+        }()
+        
+        private let searchContainer: UIView = {
+            let view = UIView()
+            view.backgroundColor = .systemGray6
+            view.layer.cornerRadius = 12
+            return view
         }()
         
         private let searchBar: UISearchBar = {
             let searchBar = UISearchBar()
             searchBar.placeholder = "Pesquisar criptomoeda"
             searchBar.searchBarStyle = .minimal
-            searchBar.backgroundColor = .systemBackground
+            searchBar.backgroundColor = .clear
             searchBar.backgroundImage = UIImage()
-            searchBar.searchTextField.backgroundColor = .systemGray6
+            searchBar.searchTextField.backgroundColor = .clear
             return searchBar
         }()
         
         private let separatorView: UIView = {
             let view = UIView()
-            view.backgroundColor = .separator
+            view.backgroundColor = .separator.withAlphaComponent(0.5)
             return view
         }()
         
@@ -65,10 +101,19 @@ extension Home {
         private func setupViews() {
             backgroundColor = .systemBackground
             
-            addSubview(titleLabel)
-            addSubview(subtitleLabel)
-            addSubview(actionButton)
-            addSubview(searchBar)
+            addSubview(containerView)
+            containerView.addSubview(stackView)
+            
+            stackView.addArrangedSubview(headerStackView)
+            stackView.addArrangedSubview(searchContainer)
+            
+            headerStackView.addArrangedSubview(titleStackView)
+            headerStackView.addArrangedSubview(actionButton)
+            
+            titleStackView.addArrangedSubview(titleLabel)
+            titleStackView.addArrangedSubview(subtitleLabel)
+            
+            searchContainer.addSubview(searchBar)
             addSubview(separatorView)
             
             searchBar.delegate = self
@@ -84,33 +129,27 @@ extension Home {
         }
         
         private func setupConstraints() {
-            titleLabel.snp.makeConstraints { make in
-                make.top.equalToSuperview().offset(16)
-                make.leading.equalToSuperview().offset(16)
-                make.trailing.lessThanOrEqualTo(actionButton.snp.leading).offset(-8)
+            containerView.snp.makeConstraints { make in
+                make.edges.equalToSuperview()
             }
             
-            subtitleLabel.snp.makeConstraints { make in
-                make.top.equalTo(titleLabel.snp.bottom).offset(4)
-                make.leading.equalTo(titleLabel)
-                make.trailing.lessThanOrEqualTo(actionButton.snp.leading).offset(-8)
+            stackView.snp.makeConstraints { make in
+                make.top.equalToSuperview().offset(16)
+                make.leading.trailing.equalToSuperview().inset(16)
+                make.bottom.equalTo(separatorView.snp.top).offset(-16)
+            }
+            
+            searchContainer.snp.makeConstraints { make in
+                make.height.equalTo(44)
             }
             
             searchBar.snp.makeConstraints { make in
-                make.top.equalTo(subtitleLabel.snp.bottom).offset(8)
-                make.leading.equalToSuperview().offset(8)
-                make.trailing.equalToSuperview().offset(-8)
-                make.height.equalTo(44)
+                make.edges.equalToSuperview()
             }
             
             separatorView.snp.makeConstraints { make in
                 make.leading.trailing.bottom.equalToSuperview()
                 make.height.equalTo(0.5)
-            }
-            
-            actionButton.snp.makeConstraints { make in
-                make.top.equalToSuperview().offset(16)
-                make.trailing.equalToSuperview().inset(16)
             }
         }
         

@@ -121,13 +121,14 @@ extension Home {
         private func loadImage(from urlString: String) {
             // Guarda a URL atual
             self.currentImageURL = urlString
-            
-            ImageCache.shared.loadImage(from: urlString) { [weak self] image in
-                DispatchQueue.main.async {
-                    // Só atualiza a imagem se esta célula ainda estiver esperando por esta URL específica
-                    if self?.currentImageURL == urlString, 
-                       let image = image {
-                        self?.iconImageView.image = image
+            Task(priority: .background) {
+                ImageCache.shared.loadImage(from: urlString) { [weak self] image in
+                    DispatchQueue.main.async {
+                        // Só atualiza a imagem se esta célula ainda estiver esperando por esta URL específica
+                        if self?.currentImageURL == urlString, 
+                        let image = image {
+                            self?.iconImageView.image = image
+                        }
                     }
                 }
             }
