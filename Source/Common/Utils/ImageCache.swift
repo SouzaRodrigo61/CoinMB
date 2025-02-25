@@ -37,12 +37,16 @@ final class ImageCache {
             guard let data = data,
                   let image = UIImage(data: data),
                   error == nil else {
-                completion(nil)
+                DispatchQueue.main.async {
+                    completion(nil)
+                }
                 return
             }
             
             self?.cache.setObject(image, forKey: urlString as NSString)
-            completion(image)
+            DispatchQueue.main.async {
+                completion(image)
+            }
         }
         
         downloadTasks[urlString] = task

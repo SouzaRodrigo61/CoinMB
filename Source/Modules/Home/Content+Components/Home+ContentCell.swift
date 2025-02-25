@@ -93,6 +93,8 @@ extension Home {
         
         // MARK: - Configuration
         
+        private var currentImageURL: String?
+        
         func configure(with model: Home.Repository.CurrentRates.Rate, iconUrl: String? = nil) {
             assetLabel.text = model.assetIdQuote
             
@@ -108,17 +110,33 @@ extension Home {
                 rateLabel.text = String(format: "%.2f", model.rate)
             }
 
+            // Limpa a imagem atual antes de carregar a nova
+            iconImageView.image = nil
+            
             if let iconUrl = iconUrl {
                 loadImage(from: iconUrl)
             }
         }
         
         private func loadImage(from urlString: String) {
+            // Guarda a URL atual
+            self.currentImageURL = urlString
+            
             ImageCache.shared.loadImage(from: urlString) { [weak self] image in
                 DispatchQueue.main.async {
-                    self?.iconImageView.image = image
+                    // Só atualiza a imagem se esta célula ainda estiver esperando por esta URL específica
+                    if self?.currentImageURL == urlString, 
+                       let image = image {
+                        self?.iconImageView.image = image
+                    }
                 }
             }
+        }
+        
+        override func prepareForReuse() {
+            super.prepareForReuse()
+            currentImageURL = nil
+            iconImageView.image = nil
         }
     }
 }
