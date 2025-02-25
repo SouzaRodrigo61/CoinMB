@@ -30,7 +30,7 @@ extension Home {
         
         private lazy var overlayContainer: UIView = {
             let view = UIView()
-            view.backgroundColor = .systemBackground
+            view.backgroundColor = .clear
             view.layer.cornerRadius = 16
             view.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
             view.alpha = 0
@@ -126,7 +126,7 @@ extension Home {
             }
             
             closeButton.snp.makeConstraints { make in
-                make.top.equalTo(overlayContainer).offset(16)
+                make.top.equalTo(view.safeAreaLayoutGuide)
                 make.trailing.equalTo(overlayContainer).offset(-16)
                 make.size.equalTo(32)
             }
