@@ -17,9 +17,9 @@ extension Home {
         
         private lazy var searchButton: UIButton = {
             let button = UIButton()
-            button.backgroundColor = .systemBackground
+            button.backgroundColor = .secondarySystemBackground
             button.layer.cornerRadius = 24
-            button.layer.shadowColor = UIColor.black.cgColor
+            button.layer.shadowColor = UIColor.tertiarySystemBackground.cgColor
             button.layer.shadowOpacity = 0.1
             button.layer.shadowOffset = CGSize(width: 0, height: 2)
             button.layer.shadowRadius = 4
@@ -29,12 +29,12 @@ extension Home {
             
             let attributedString = NSMutableAttributedString()
             let imageAttachment = NSTextAttachment()
-            imageAttachment.image = searchImage?.withTintColor(.black)
+            imageAttachment.image = searchImage?.withTintColor(.label)
             attributedString.append(NSAttributedString(attachment: imageAttachment))
             attributedString.append(NSAttributedString(string: "  \(searchLabel)"))
             
             button.setAttributedTitle(attributedString, for: .normal)
-            button.setTitleColor(.black, for: .normal)
+            button.setTitleColor(.label, for: .normal)
             button.contentHorizontalAlignment = .left
             button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
             
@@ -44,10 +44,10 @@ extension Home {
         
         private lazy var filterButton: UIButton = {
             let button = UIButton()
-            button.backgroundColor = .systemBackground
+            button.backgroundColor = .secondarySystemBackground
             button.layer.cornerRadius = 24
             button.setImage(UIImage(systemName: "slider.horizontal.3"), for: .normal)
-            button.tintColor = .black
+            button.tintColor = .label
             button.layer.shadowColor = UIColor.black.cgColor
             button.layer.shadowOpacity = 0.1
             button.layer.shadowOffset = CGSize(width: 0, height: 2)

@@ -57,7 +57,7 @@ extension Home {
                 guard let self else { return }
                 guard let navigationController else { return }
                 
-                let detail = NavigationCoordinator.coordinatorDetail()
+                let detail = NavigationCoordinator.coordinatorDetail(with: model)
                 
                 detail.navigate(navigationController)
             }

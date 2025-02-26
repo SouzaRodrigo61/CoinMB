@@ -9,14 +9,10 @@ import UIKit
 
 extension Coordinating where A == UINavigationController {
 
-    static func coordinatorDetail() -> Self {
+    static func coordinatorDetail(with rate: Home.Repository.CurrentRates.Rate) -> Self {
         return Self { navigationController in
-            let viewController = Detail.builder()
-            navigationController.pushViewController(viewController, animated: false)
+            let viewController = Detail.builder(with: rate)
+            navigationController.pushViewController(viewController, animated: true)
         }
-    }
-
-    static var detail: Self {
-        coordinatorDetail()
     }
 }

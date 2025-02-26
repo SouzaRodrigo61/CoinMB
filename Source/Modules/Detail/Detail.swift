@@ -9,8 +9,8 @@ import UIKit
 
 enum Detail { 
 
-    static func builder() -> UIViewController {
-        let viewModel = ViewModel()
+    static func builder(with rate: Home.Repository.CurrentRates.Rate) -> UIViewController {
+        let viewModel = ViewModel(rate: rate)
         let viewController = ViewController(model: viewModel)
 
         return viewController

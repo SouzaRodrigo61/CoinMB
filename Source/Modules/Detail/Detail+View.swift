@@ -15,14 +15,18 @@ extension Detail {
 
         private let tableView: UITableView = {
             let tableView = UITableView()
+            tableView.backgroundColor = .systemBackground
             tableView.translatesAutoresizingMaskIntoConstraints = false
             return tableView
         }()
 
         // MARK: - Initializers
+        
+        private var viewModel: Home.Repository.CurrentRates.Rate?
 
         init() {
             super.init(frame: .zero)
+            setupTableView()
         }
 
         required init?(coder: NSCoder) {
@@ -31,10 +35,6 @@ extension Detail {
 
         // MARK: - Methods
 
-        func configure() {
-            backgroundColor = .red
-        }
-
         private func setupTableView() {
             addSubview(tableView)
 
@@ -42,24 +42,44 @@ extension Detail {
                 make.edges.equalToSuperview()
             }
 
-//            tableView.register(Detail.Content.Cell.self, forCellReuseIdentifier: Detail.Content.Cell.identifier)   
-//            tableView.dataSource = self
-//            tableView.delegate = self
+            tableView.register(Detail.ContentCell.self, forCellReuseIdentifier: Detail.ContentCell.identifier)   
+            tableView.dataSource = self
+            tableView.delegate = self
+            tableView.separatorStyle = .singleLine
+            tableView.backgroundColor = .clear
         }
     }
 }
 
-//extension Detail.View: UITableViewDataSource, UITableViewDelegate {
-//    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//        return 10
-//    }
-//
-//    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-//        let cell = tableView.dequeueReusableCell(withIdentifier: Detail.Content.Cell.identifier, for: indexPath) as! Detail.Content.Cell
-//        return cell
-//    }
-//
-//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        dump("didSelectRowAt: \(indexPath.row)", name: "didSelectRowAt -> Table View")
-//    }
-//}
+extension Detail.View: UITableViewDataSource, UITableViewDelegate {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return 1
+    }
+
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: Detail.ContentCell.identifier, for: indexPath) as? Detail.ContentCell else {
+            return UITableViewCell()
+        }
+        
+        cell.configure(title: viewModel?.assetIdQuote ?? "", subtitle: String(viewModel?.rate ?? 0))
+        
+        return cell
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        dump("didSelectRowAt: \(indexPath.row)", name: "didSelectRowAt -> Table View")
+    }
+}
+
+extension Detail.View { 
+    func configure(with model: Home.Repository.CurrentRates.Rate) {
+        self.viewModel = model
+        
+        self.tableView.reloadData()
+    }
+}

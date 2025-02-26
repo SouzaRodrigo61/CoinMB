@@ -34,7 +34,7 @@ extension Home {
         var onTimeFilterSelected: ((Home.TimeFilterView.TimeFilter) -> Void)?
         var onContentTapped: ((Home.Repository.CurrentRates.Rate) -> Void)?
 
-        private var viewModel: Home.ViewModel.Model? = nil
+        private var viewModel: Home.ViewModel.Model?
         
         private var originalRates: [Home.Repository.CurrentRates.Rate] = []
         private var filteredRates: [Home.Repository.CurrentRates.Rate] = []

@@ -11,7 +11,7 @@ import SnapKit
 extension Detail {
     final class ViewController: UIViewController {
 
-        private var model: ViewModel
+        private var viewModel: ViewModel
 
         private let screen: View = {
             let view = View()
@@ -19,7 +19,7 @@ extension Detail {
         }()
 
         init(model: ViewModel) {
-            self.model = model
+            self.viewModel = model
             super.init(nibName: nil, bundle: nil)
         }
 
@@ -39,7 +39,6 @@ extension Detail {
             setupConstraints()
 
             // MARK: Configure
-            screen.configure()
         }
 
         private func setupConstraints() {
@@ -48,6 +47,16 @@ extension Detail {
             screen.snp.makeConstraints { make in
                 make.edges.equalToSuperview()
             }
+        }
+        
+        private func setupSink() { 
+            viewModel.$rate
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] model in
+                    guard let self else { return }
+                    screen.configure(with: model)
+                }
+                .store(in: &viewModel.cancellables)
         }
     }
 }
