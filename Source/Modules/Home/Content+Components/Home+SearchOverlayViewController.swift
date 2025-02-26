@@ -93,13 +93,13 @@ private extension Home.SearchOverlayViewController {
     }
     
     func makeSearchTextField() -> UITextField {
-        let tf = UITextField()
-        tf.placeholder = "Buscar criptomoedas"
-        tf.font = .systemFont(ofSize: 16, weight: .regular)
-        tf.textColor = .label
-        tf.leftView = UIImageView(image: UIImage(systemName: "magnifyingglass"))
-        tf.leftViewMode = .always
-        return tf
+        let textField = UITextField()
+        textField.placeholder = "Buscar criptomoedas"
+        textField.font = .systemFont(ofSize: 16, weight: .regular)
+        textField.textColor = .label
+        textField.leftView = UIImageView(image: UIImage(systemName: "magnifyingglass"))
+        textField.leftViewMode = .always
+        return textField
     }
     
     func makeOptionsStackView() -> UIStackView {
@@ -349,33 +349,26 @@ private extension Home.SearchOverlayViewController {
     }
     
     @objc func handleWhenTap() {
-        // Implementar lógica para seleção de data
     }
     
     @objc func handleWhoTap() {
-        // Implementar lógica para seleção de convidados
     }
     
     @objc func handleOptionTap(_ gesture: UITapGestureRecognizer) {
-        guard let optionView = gesture.view else { return }
-        // Implementar a lógica de seleção aqui
     }
 }
 
 // MARK: - Animations
 extension Home.SearchOverlayViewController {
     func animateAppearance() {
-        // Configuração inicial
         blurView.alpha = 0
         overlayContainer.alpha = 0
         closeButton.alpha = 0
         searchButton.alpha = 0
         
-        // Calcula o frame inicial baseado no botão de origem
         if let sourceButton = sourceButton,
            let sourceFrame = sourceButton.superview?.convert(sourceButton.frame, to: nil) {
             
-            // Configura o ponto inicial exatamente no centro do botão fonte
             let scaleTransform = CGAffineTransform(scaleX: 0.1, y: 0.1)
             let translateX = sourceFrame.midX - view.bounds.width/2
             let translateY = sourceFrame.midY - view.bounds.height/2
@@ -386,7 +379,6 @@ extension Home.SearchOverlayViewController {
             overlayContainer.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
         }
         
-        // Anima com efeito de zoom
         UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.2) {
             self.blurView.alpha = 1
             self.overlayContainer.alpha = 1
@@ -399,26 +391,20 @@ extension Home.SearchOverlayViewController {
     func dismissWithAnimation(velocity: CGPoint? = nil) {
         let duration: TimeInterval = 0.5
         
-        // Se temos um botão de origem, vamos animar de volta para ele
         if let sourceButton = sourceButton,
            let sourceFrame = sourceButton.superview?.convert(sourceButton.frame, to: nil) {
             
             UIView.animate(withDuration: duration, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.2) {
-                // Escala para o tamanho do botão
                 let scaleTransform = CGAffineTransform(scaleX: 0.1, y: 0.1)
                 
-                // Translação para a posição do botão
                 let translateX = sourceFrame.midX - self.view.bounds.width/2
                 let translateY = sourceFrame.midY - self.view.bounds.height/2
                 let translationTransform = CGAffineTransform(translationX: translateX, y: translateY)
                 
-                // Aplica as transformações mantendo o container visível
                 self.overlayContainer.transform = scaleTransform.concatenating(translationTransform)
                 
-                // Mantém o container totalmente visível
                 self.overlayContainer.alpha = 1
                 
-                // Reduz apenas o blur gradualmente
                 self.blurView.alpha = 0
                 self.closeButton.alpha = 0
                 self.searchButton.alpha = 0
@@ -426,7 +412,6 @@ extension Home.SearchOverlayViewController {
                 self.dismiss(animated: false)
             }
         } else {
-            // Animação padrão quando não há botão de origem
             UIView.animate(withDuration: duration) {
                 self.overlayContainer.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
                 self.overlayContainer.alpha = 1

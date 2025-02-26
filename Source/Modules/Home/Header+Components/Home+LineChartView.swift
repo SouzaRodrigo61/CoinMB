@@ -306,13 +306,21 @@ extension Home {
                     if startIndex < selectedIndex {
                         let controlPoint1 = CGPoint(x: points[startIndex].x + segmentWidth/3, y: points[startIndex].y)
                         let controlPoint2 = CGPoint(x: point.x - segmentWidth/3, y: point.y)
-                        highlightPath.addCurve(to: point, controlPoint1: controlPoint1, controlPoint2: controlPoint2)
+                        highlightPath.addCurve(
+                            to: point, 
+                            controlPoint1: controlPoint1, 
+                            controlPoint2: controlPoint2
+                        )
                     }
                     
                     if selectedIndex < endIndex {
                         let controlPoint1 = CGPoint(x: point.x + segmentWidth/3, y: point.y)
                         let controlPoint2 = CGPoint(x: points[endIndex].x - segmentWidth/3, y: points[endIndex].y)
-                        highlightPath.addCurve(to: points[endIndex], controlPoint1: controlPoint1, controlPoint2: controlPoint2)
+                        highlightPath.addCurve(
+                            to: points[endIndex], 
+                            controlPoint1: controlPoint1, 
+                            controlPoint2: controlPoint2
+                        )
                     }
                     
                     highlightLineLayer.path = highlightPath.cgPath

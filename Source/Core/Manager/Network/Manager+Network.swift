@@ -11,7 +11,7 @@ extension Manager {
     struct Network: Sendable {
         private let configuration: Configuration = .default
 
-        public var get: @Sendable (String, [String:String]?, @escaping (Result<Data, NetworkError>) -> Void) -> Void
+        public var get: @Sendable (String, [String: String]?, @escaping (Result<Data, NetworkError>) -> Void) -> Void
         public var post: @Sendable (String, Data?, @escaping (Result<Data, NetworkError>) -> Void) -> Void
         public var put: @Sendable (String, Data?, @escaping (Result<Data, NetworkError>) -> Void) -> Void
         public var delete: @Sendable (String, @escaping (Result<Data, NetworkError>) -> Void) -> Void

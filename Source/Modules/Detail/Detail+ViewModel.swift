@@ -16,7 +16,5 @@ extension Detail {
         init(rate: Home.Repository.CurrentRates.Rate) {
             self.rate = rate
         }
-        
-        
     }
 }

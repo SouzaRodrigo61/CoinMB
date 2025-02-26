@@ -31,7 +31,7 @@ final class ImageCache {
             return
         }
         
-        let task = URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+        let task = URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
             defer { self?.downloadTasks.removeValue(forKey: urlString) }
             
             guard let data = data,

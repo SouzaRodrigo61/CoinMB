@@ -61,7 +61,9 @@ extension Detail.View: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: Detail.ContentCell.identifier, for: indexPath) as? Detail.ContentCell else {
+        guard let cell = tableView.dequeueReusableCell(
+            withIdentifier: Detail.ContentCell.identifier, for: indexPath
+        ) as? Detail.ContentCell else {
             return UITableViewCell()
         }
         

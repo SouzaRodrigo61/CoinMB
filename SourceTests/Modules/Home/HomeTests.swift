@@ -26,7 +26,7 @@ extension Home.Repository {
 // Mock do Network Manager
 extension Manager.Network {
     static let mockSuccess = Self(
-        get: { endpoint, query, completion in
+        get: { endpoint, _, completion in
             if endpoint.contains("exchangerate") {
                 completion(.success(mockCurrentRateData))
             } else if endpoint.contains("period") {
@@ -49,9 +49,8 @@ extension Manager.Network {
         delete: { _, _ in }
     )
     
-    // Mock data
     private static var mockCurrentRateData: Data {
-        """
+        let data = """
         {
             "asset_id_base": "btc",
             "rates": [
@@ -77,11 +76,12 @@ extension Manager.Network {
                 }
             ]
         }
-        """.data(using: .utf8)!
+        """
+        return Data(data.utf8)
     }
     
     private static var mockExchangePeriodData: Data {
-        """
+        let data = """
         [
             {
                 "time_period_start": "2016-01-01T00:00:00.0000000Z",
@@ -104,11 +104,12 @@ extension Manager.Network {
                 "rate_close": 430.38999999999993
             }
         ]
-        """.data(using: .utf8)!
+        """
+        return Data(data.utf8)
     }
     
     private static var mockIconsData: Data {
-        """
+        let data = """
         [
             {
                 "asset_id": "BTC",
@@ -123,7 +124,8 @@ extension Manager.Network {
                 "url": "https://s3.eu-central-1.amazonaws.com/bbxt-static-icons/type-id/png_16/4873707f25fe4de3b4bca6fa5c631011.png"
             }
         ]
-        """.data(using: .utf8)!
+        """
+        return Data(data.utf8)
     }
 }
 
@@ -188,7 +190,8 @@ final class HomeTests: XCTestCase {
         
         sut.updateTimeFilter(.oneWeek)
         
-        XCTAssertEqual(sut.selectedEndDate.timeIntervalSinceReferenceDate, Date.now.timeIntervalSinceReferenceDate, accuracy: 1)
+        XCTAssertEqual(sut.selectedEndDate.timeIntervalSinceReferenceDate,
+                       Date.now.timeIntervalSinceReferenceDate, accuracy: 1)
         
         let calendar = Calendar.current
         let expectedStartDate = calendar.date(byAdding: .day, value: -7, to: .now)!

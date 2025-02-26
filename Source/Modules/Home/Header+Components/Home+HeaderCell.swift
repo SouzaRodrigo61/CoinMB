@@ -202,10 +202,6 @@ extension Home {
                 make.edges.equalToSuperview()
             }
         }
-        
-        override func layoutSubviews() {
-            super.layoutSubviews()
-        }
 
         func updateBlur(alpha: CGFloat) {
             blurEffectView.alpha = alpha
