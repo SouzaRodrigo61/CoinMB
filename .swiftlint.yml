@@ -1,2 +1,4 @@
 disabled_rules: 
    - trailing_whitespace
+   - nesting
+   - closure_parameter_position

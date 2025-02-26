@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SnapKit
 
 extension Home {
     final class View: UIView {
@@ -13,9 +14,11 @@ extension Home {
         private lazy var collectionView = {
             let collectionView = UICollectionView(
                 frame: .zero, 
-                collectionViewLayout: UICollectionViewCompositionalLayout { sectionIndex, _ -> NSCollectionLayoutSection? in
-                return self.createSectionLayout(sectionIndex: sectionIndex)
-            })
+                collectionViewLayout: UICollectionViewCompositionalLayout { 
+                    sectionIndex, _ -> NSCollectionLayoutSection? in
+                    return self.createSectionLayout(sectionIndex: sectionIndex)
+                }
+            )
 
             collectionView.backgroundColor = .systemBackground
             collectionView.contentInsetAdjustmentBehavior = .never

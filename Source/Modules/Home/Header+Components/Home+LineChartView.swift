@@ -62,14 +62,26 @@ extension Home {
         // MARK: - Setup
         private func setupView() {
             backgroundColor = .clear
-            
+            setupLayers()
+            configureLineLayer()
+            configurePointLayer()
+            configureDashGradientLayer()
+            configureHighlightLayer()
+            configurePointShadowLayer()
+            setupGestureRecognizers()
+            updateColors()
+        }
+        
+        private func setupLayers() {
             layer.addSublayer(gradientLayer)
             layer.addSublayer(lineLayer)
             layer.addSublayer(highlightLineLayer)
             layer.addSublayer(dashGradientLayer)
             layer.addSublayer(pointShadowLayer)
             layer.addSublayer(pointLayer)
-            
+        }
+        
+        private func configureLineLayer() {
             lineLayer.lineWidth = lineWidth
             lineLayer.lineCap = .round
             lineLayer.lineJoin = .round
@@ -79,7 +91,9 @@ extension Home {
             lineLayer.shadowOffset = .zero
             lineLayer.shadowOpacity = 0.2
             lineLayer.shadowRadius = 8
-            
+        }
+        
+        private func configurePointLayer() {
             pointLayer.fillColor = UIColor.white.cgColor
             pointLayer.strokeColor = lineColor.cgColor
             pointLayer.lineWidth = 3.0
@@ -87,7 +101,9 @@ extension Home {
             pointLayer.shadowOffset = CGSize(width: 0, height: 1)
             pointLayer.shadowOpacity = 0.3
             pointLayer.shadowRadius = 4
-            
+        }
+        
+        private func configureDashGradientLayer() {
             dashGradientLayer.colors = [
                 UIColor.clear.cgColor,
                 lineColor.cgColor,
@@ -102,26 +118,30 @@ extension Home {
             dashLayer.lineWidth = 1.0
             dashLayer.strokeColor = UIColor.white.cgColor
             dashGradientLayer.mask = dashLayer
-            
+        }
+        
+        private func configureHighlightLayer() {
             highlightLineLayer.lineWidth = lineWidth * 2
             highlightLineLayer.lineCap = .round
             highlightLineLayer.lineJoin = .round
             highlightLineLayer.fillColor = nil
             highlightLineLayer.strokeColor = lineColor.cgColor
             highlightLineLayer.opacity = 0
-            
+        }
+        
+        private func configurePointShadowLayer() {
             pointShadowLayer.fillColor = UIColor.black.cgColor
             pointShadowLayer.shadowColor = UIColor.black.cgColor
             pointShadowLayer.shadowOffset = .zero
             pointShadowLayer.shadowOpacity = 0.5
             pointShadowLayer.shadowRadius = 8
-            
+        }
+        
+        private func setupGestureRecognizers() {
             let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
             let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
             addGestureRecognizer(panGesture)
             addGestureRecognizer(tapGesture)
-            
-            updateColors()
         }
         
         private func updateColors() {
@@ -211,27 +231,40 @@ extension Home {
         
         override func layoutSubviews() {
             super.layoutSubviews()
-            
             guard !dataPoints.isEmpty else { return }
             
             let rect = bounds
-            let linePath = UIBezierPath()
-            let pointsPath = UIBezierPath()
+            let points = calculatePoints(in: rect)
             
+            setupLinePath(with: points)
+            setupGradientPath(in: rect)
+            
+            if animated {
+                animateDrawing()
+                animated = false
+            }
+            
+            updateSelectionState(with: points)
+        }
+        
+        private func calculatePoints(in rect: CGRect) -> [CGPoint] {
             let horizontalGap = rect.width / CGFloat(dataPoints.count - 1)
             let maxValue = dataPoints.max() ?? 1
             let scale = (rect.height * 0.8) / maxValue
             let verticalOffset = rect.height * 0.1
             
-            var points: [CGPoint] = []
-            
-            for pointIndex in 0..<dataPoints.count {
-                let point = CGPoint(
-                    x: CGFloat(pointIndex) * horizontalGap,
-                    y: rect.height - verticalOffset - (dataPoints[pointIndex] * scale)
+            return dataPoints.enumerated().map { index, value in
+                CGPoint(
+                    x: CGFloat(index) * horizontalGap,
+                    y: rect.height - verticalOffset - (value * scale)
                 )
-                points.append(point)
             }
+        }
+        
+        private func setupLinePath(with points: [CGPoint]) {
+            let linePath = UIBezierPath()
+            let pointsPath = UIBezierPath()
+            let horizontalGap = bounds.width / CGFloat(dataPoints.count - 1)
             
             linePath.move(to: points[0])
             
@@ -252,10 +285,14 @@ extension Home {
             
             lineLayer.path = linePath.cgPath
             pointLayer.path = pointsPath.cgPath
-            
-            guard let gradientPath = linePath.copy() as? UIBezierPath else {
+        }
+        
+        private func setupGradientPath(in rect: CGRect) {
+            guard let linePath = lineLayer.path,
+                  let gradientPath = UIBezierPath(cgPath: linePath).copy() as? UIBezierPath else {
                 return
             }
+            
             gradientPath.addLine(to: CGPoint(x: rect.width, y: rect.height))
             gradientPath.addLine(to: CGPoint(x: 0, y: rect.height))
             gradientPath.close()
@@ -264,79 +301,92 @@ extension Home {
             gradientMaskLayer.path = gradientPath.cgPath
             gradientLayer.frame = rect
             gradientLayer.mask = gradientMaskLayer
-            
-            if animated {
-                animateDrawing()
-                animated = false
-            }
-            
+        }
+        
+        private func updateSelectionState(with points: [CGPoint]) {
             if let selectedIndex = selectedPointIndex {
-                lineLayer.opacity = isDragging ? 0.3 : 1.0
-                gradientLayer.opacity = isDragging ? 0.6 : 1.0
-                
-                let point = points[selectedIndex]
-                
-                let dashPath = UIBezierPath()
-                dashPath.move(to: CGPoint(x: point.x, y: 0))
-                dashPath.addLine(to: CGPoint(x: point.x, y: bounds.height))
-                dashLayer.path = dashPath.cgPath
-                dashGradientLayer.frame = bounds
-                dashGradientLayer.opacity = isDragging ? 1.0 : 0.0
-                
-                let selectedPointPath = UIBezierPath(arcCenter: point,
-                                                   radius: pointRadius,
-                                                   startAngle: 0,
-                                                   endAngle: .pi * 2,
-                                                   clockwise: true)
-                
-                pointShadowLayer.path = selectedPointPath.cgPath
-                pointShadowLayer.opacity = isDragging ? 1.0 : 0.0
-                
-                pointLayer.path = selectedPointPath.cgPath
-
-                if isDragging {
-                    let highlightPath = UIBezierPath()
-                    let segmentWidth: CGFloat = bounds.width / CGFloat(points.count - 1)
-                    
-                    let startIndex = max(0, selectedIndex - 1)
-                    let endIndex = min(points.count - 1, selectedIndex + 1)
-                    
-                    highlightPath.move(to: points[startIndex])
-                    
-                    if startIndex < selectedIndex {
-                        let controlPoint1 = CGPoint(x: points[startIndex].x + segmentWidth/3, y: points[startIndex].y)
-                        let controlPoint2 = CGPoint(x: point.x - segmentWidth/3, y: point.y)
-                        highlightPath.addCurve(
-                            to: point, 
-                            controlPoint1: controlPoint1, 
-                            controlPoint2: controlPoint2
-                        )
-                    }
-                    
-                    if selectedIndex < endIndex {
-                        let controlPoint1 = CGPoint(x: point.x + segmentWidth/3, y: point.y)
-                        let controlPoint2 = CGPoint(x: points[endIndex].x - segmentWidth/3, y: points[endIndex].y)
-                        highlightPath.addCurve(
-                            to: points[endIndex], 
-                            controlPoint1: controlPoint1, 
-                            controlPoint2: controlPoint2
-                        )
-                    }
-                    
-                    highlightLineLayer.path = highlightPath.cgPath
-                    highlightLineLayer.opacity = 1.0
-                } else {
-                    highlightLineLayer.opacity = 0
-                }
+                updateLayersForSelection(at: selectedIndex, points: points)
             } else {
-                lineLayer.opacity = 1.0
-                gradientLayer.opacity = 1.0
-                dashLayer.path = nil
-                dashGradientLayer.opacity = 0
-                pointLayer.path = nil
-                pointShadowLayer.opacity = 0
+                resetLayersToDefault()
+            }
+        }
+        
+        private func updateLayersForSelection(at selectedIndex: Int, points: [CGPoint]) {
+            lineLayer.opacity = isDragging ? 0.3 : 1.0
+            gradientLayer.opacity = isDragging ? 0.6 : 1.0
+            
+            let point = points[selectedIndex]
+            updateDashLayer(at: point)
+            updateSelectedPoint(at: point)
+            
+            if isDragging {
+                updateHighlightPath(at: selectedIndex, points: points)
+            } else {
                 highlightLineLayer.opacity = 0
             }
+        }
+        
+        private func updateDashLayer(at point: CGPoint) {
+            let dashPath = UIBezierPath()
+            dashPath.move(to: CGPoint(x: point.x, y: 0))
+            dashPath.addLine(to: CGPoint(x: point.x, y: bounds.height))
+            dashLayer.path = dashPath.cgPath
+            dashGradientLayer.frame = bounds
+            dashGradientLayer.opacity = isDragging ? 1.0 : 0.0
+            
+            let selectedPointPath = UIBezierPath(arcCenter: point,
+                                               radius: pointRadius,
+                                               startAngle: 0,
+                                               endAngle: .pi * 2,
+                                               clockwise: true)
+            
+            pointShadowLayer.path = selectedPointPath.cgPath
+            pointShadowLayer.opacity = isDragging ? 1.0 : 0.0
+            
+            pointLayer.path = selectedPointPath.cgPath
+        }
+        
+        private func updateHighlightPath(at selectedIndex: Int, points: [CGPoint]) {
+            let highlightPath = UIBezierPath()
+            let segmentWidth: CGFloat = bounds.width / CGFloat(points.count - 1)
+            
+            let startIndex = max(0, selectedIndex - 1)
+            let endIndex = min(points.count - 1, selectedIndex + 1)
+            
+            highlightPath.move(to: points[startIndex])
+            
+            if startIndex < selectedIndex {
+                let controlPoint1 = CGPoint(x: points[startIndex].x + segmentWidth/3, y: points[startIndex].y)
+                let controlPoint2 = CGPoint(x: points[selectedIndex].x - segmentWidth/3, y: points[selectedIndex].y)
+                highlightPath.addCurve(
+                    to: points[selectedIndex], 
+                    controlPoint1: controlPoint1, 
+                    controlPoint2: controlPoint2
+                )
+            }
+            
+            if selectedIndex < endIndex {
+                let controlPoint1 = CGPoint(x: points[selectedIndex].x + segmentWidth/3, y: points[selectedIndex].y)
+                let controlPoint2 = CGPoint(x: points[endIndex].x - segmentWidth/3, y: points[endIndex].y)
+                highlightPath.addCurve(
+                    to: points[endIndex], 
+                    controlPoint1: controlPoint1, 
+                    controlPoint2: controlPoint2
+                )
+            }
+            
+            highlightLineLayer.path = highlightPath.cgPath
+            highlightLineLayer.opacity = 1.0
+        }
+        
+        private func resetLayersToDefault() {
+            lineLayer.opacity = 1.0
+            gradientLayer.opacity = 1.0
+            dashLayer.path = nil
+            dashGradientLayer.opacity = 0
+            pointLayer.path = nil
+            pointShadowLayer.opacity = 0
+            highlightLineLayer.opacity = 0
         }
         
         private func animateDrawing() {

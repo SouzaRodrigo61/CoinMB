@@ -123,8 +123,6 @@ extension Home {
             selectedStartDate = startDate
             selectedEndDate = .now
             
-            
-
             DispatchQueue.global(qos: .background).async { [weak self] in
                 guard let self else { return }
                 fetchExchangePeriod(

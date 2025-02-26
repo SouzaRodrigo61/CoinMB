@@ -134,12 +134,16 @@ extension Home {
 
             chartView.onDragBegan = { [weak self] in
                 guard let self = self else { return }
-                UIView.animate(withDuration: 0.3, animations: {
-                    self.timeFilterView.alpha = 0
-                    self.timeFilterView.transform = CGAffineTransform(translationX: 0, y: 44)
-                }) { _ in
-                    self.timeFilterView.isHidden = true
-                }
+                UIView.animate(
+                    withDuration: 0.3,
+                    animations: {
+                        self.timeFilterView.alpha = 0
+                        self.timeFilterView.transform = CGAffineTransform(translationX: 0, y: 44)
+                    },
+                    completion: { _ in
+                        self.timeFilterView.isHidden = true
+                    }
+                )
             }
 
             chartView.onDragEnded = { [weak self] in
