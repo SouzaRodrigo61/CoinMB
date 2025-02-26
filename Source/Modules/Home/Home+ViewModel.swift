@@ -39,8 +39,8 @@ extension Home {
         func fetchCurrentRates() {
             DispatchQueue.global(qos: .background).async { [weak self] in
                 guard let self else { return }
-                fetchExchangeIcon()
                 fetchCurrentRate(crypto: selectedCrypto)
+                fetchExchangeIcon()
                 fetchExchangePeriod(
                     sourceAsset: selectedCrypto,
                     targetAsset: selectedCurrency,

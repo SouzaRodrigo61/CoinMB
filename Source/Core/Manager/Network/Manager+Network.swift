@@ -52,6 +52,21 @@ extension Manager.Network {
         case invalidResponse
         case decodingError(String)
         case serviceException(ServiceException)
+        
+        static func == (lhs: NetworkError, rhs: NetworkError) -> Bool {
+            switch (lhs, rhs) {
+            case (.connectionError(let lhsString), .connectionError(let rhsString)):
+                return lhsString == rhsString
+            case (.invalidResponse, .invalidResponse):
+                return true
+            case (.decodingError(let lhsString), .decodingError(let rhsString)):
+                return lhsString == rhsString
+            case (.serviceException(let lhsException), .serviceException(let rhsException)):
+                return lhsException == rhsException
+            default:
+                return false
+            }
+        }
     }
 
     enum Method: String {

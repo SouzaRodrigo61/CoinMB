@@ -149,10 +149,11 @@ extension Home {
 }
 
 extension Home.Repository { 
-    enum NetworkError: Error {
+    enum NetworkError: Error, Equatable {
         case decode(msg: String, error: String)
         case network(Manager.Network.NetworkError)
     }
+    
     struct CurrentRates: Codable, Equatable, Hashable {
         let assetIdBase: String
         let rates: [Rate]

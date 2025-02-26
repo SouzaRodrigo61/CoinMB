@@ -365,67 +365,77 @@ private extension Home.SearchOverlayViewController {
 // MARK: - Animations
 extension Home.SearchOverlayViewController {
     func animateAppearance() {
-        // Estado inicial
+        // Configuração inicial
         blurView.alpha = 0
         overlayContainer.alpha = 0
         closeButton.alpha = 0
         searchButton.alpha = 0
         
-        // Posição inicial baseada no botão de origem
-        if let sourceFrame = sourceButton?.convert(sourceButton?.bounds ?? .zero, to: nil) {
-            overlayContainer.transform = CGAffineTransform(translationX: sourceFrame.midX - view.bounds.width/2,
-                                                         y: sourceFrame.midY - view.bounds.height/2)
-                .concatenating(CGAffineTransform(scaleX: 0.3, y: 0.3))
+        // Calcula o frame inicial baseado no botão de origem
+        if let sourceButton = sourceButton,
+           let sourceFrame = sourceButton.superview?.convert(sourceButton.frame, to: nil) {
+            
+            // Configura o ponto inicial exatamente no centro do botão fonte
+            let scaleTransform = CGAffineTransform(scaleX: 0.1, y: 0.1)
+            let translateX = sourceFrame.midX - view.bounds.width/2
+            let translateY = sourceFrame.midY - view.bounds.height/2
+            let translationTransform = CGAffineTransform(translationX: translateX, y: translateY)
+            
+            overlayContainer.transform = scaleTransform.concatenating(translationTransform)
         } else {
-            overlayContainer.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-                .concatenating(CGAffineTransform(translationX: 0, y: 50))
+            overlayContainer.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
         }
         
-        // Animação de entrada
-        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
+        // Anima com efeito de zoom
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.2) {
             self.blurView.alpha = 1
             self.overlayContainer.alpha = 1
             self.overlayContainer.transform = .identity
-        }
-        
-        // Fade in dos botões
-        UIView.animate(withDuration: 0.3, delay: 0.2) {
             self.closeButton.alpha = 1
             self.searchButton.alpha = 1
         }
     }
     
     func dismissWithAnimation(velocity: CGPoint? = nil) {
-        let duration = velocity != nil ? 0.2 : 0.3
+        let duration: TimeInterval = 0.5
         
-        // Primeiro, fade out dos botões
-        UIView.animate(withDuration: duration * 0.5) {
-            self.closeButton.alpha = 0
-            self.searchButton.alpha = 0
-        }
-        
-        // Depois, animação de saída do container
-        UIView.animate(withDuration: duration, delay: duration * 0.5, options: .curveEaseIn) {
-            if let velocity = velocity {
-                let translation = CGAffineTransform(translationX: 0,
-                                                  y: velocity.y > 0 ? self.view.bounds.height : -self.view.bounds.height)
-                let scale = CGAffineTransform(scaleX: 0.8, y: 0.8)
-                self.overlayContainer.transform = translation.concatenating(scale)
-            } else {
-                // Se tiver sourceButton, anima de volta para ele
-                if let sourceFrame = self.sourceButton?.convert(self.sourceButton?.bounds ?? .zero, to: nil) {
-                    self.overlayContainer.transform = CGAffineTransform(translationX: sourceFrame.midX - self.view.bounds.width/2,
-                                                                      y: sourceFrame.midY - self.view.bounds.height/2)
-                        .concatenating(CGAffineTransform(scaleX: 0.3, y: 0.3))
-                } else {
-                    self.overlayContainer.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-                }
-            }
+        // Se temos um botão de origem, vamos animar de volta para ele
+        if let sourceButton = sourceButton,
+           let sourceFrame = sourceButton.superview?.convert(sourceButton.frame, to: nil) {
             
-            self.blurView.alpha = 0
-            self.overlayContainer.alpha = 0
-        } completion: { _ in
-            self.dismiss(animated: false)
+            UIView.animate(withDuration: duration, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.2) {
+                // Escala para o tamanho do botão
+                let scaleTransform = CGAffineTransform(scaleX: 0.1, y: 0.1)
+                
+                // Translação para a posição do botão
+                let translateX = sourceFrame.midX - self.view.bounds.width/2
+                let translateY = sourceFrame.midY - self.view.bounds.height/2
+                let translationTransform = CGAffineTransform(translationX: translateX, y: translateY)
+                
+                // Aplica as transformações mantendo o container visível
+                self.overlayContainer.transform = scaleTransform.concatenating(translationTransform)
+                
+                // Mantém o container totalmente visível
+                self.overlayContainer.alpha = 1
+                
+                // Reduz apenas o blur gradualmente
+                self.blurView.alpha = 0
+                self.closeButton.alpha = 0
+                self.searchButton.alpha = 0
+            } completion: { _ in
+                self.dismiss(animated: false)
+            }
+        } else {
+            // Animação padrão quando não há botão de origem
+            UIView.animate(withDuration: duration) {
+                self.overlayContainer.transform = CGAffineTransform(scaleX: 0.1, y: 0.1)
+                self.overlayContainer.alpha = 1
+                self.blurView.alpha = 0
+                self.closeButton.alpha = 0
+                self.searchButton.alpha = 0
+            } completion: { _ in
+                self.dismiss(animated: false)
+            }
         }
     }
     
@@ -458,8 +468,11 @@ extension Home.SearchOverlayViewController {
                 .concatenating(scaling)
                 .concatenating(rotation)
             
-            // Ajusta opacidades
-            blurView.alpha = 1 - progress
+            // Ajusta opacidades mantendo valores mais altos
+            let minBlurAlpha: CGFloat = 0.5
+            let minOverlayAlpha: CGFloat = 0.8
+            blurView.alpha = max(minBlurAlpha, 1 - progress)
+            overlayContainer.alpha = max(minOverlayAlpha, 1 - progress)
             closeButton.alpha = 1 - progress
             searchButton.alpha = 1 - progress
             
