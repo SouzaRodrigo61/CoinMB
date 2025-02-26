@@ -56,6 +56,7 @@ extension Home {
             
             setupView()
             setupActionGesture()
+            setupAccessibility()
         }
         
         required init?(coder: NSCoder) {
@@ -90,6 +91,11 @@ extension Home {
                 make.leading.equalTo(iconImageView.snp.trailing).offset(12)
                 make.trailing.bottom.equalToSuperview().inset(12)
             }
+        }
+
+        private func setupAccessibility() {
+            isAccessibilityElement = true
+            accessibilityIdentifier = "Home.ContentCell"
         }
         
         // MARK: - Configuration

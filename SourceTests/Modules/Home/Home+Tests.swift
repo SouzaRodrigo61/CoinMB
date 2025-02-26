@@ -1,5 +1,5 @@
 //
-//  HomeTests.swift
+//  Home+Tests.swift
 //  CoinMB
 //
 //  Created by Rodrigo Souza on 21/02/2025.

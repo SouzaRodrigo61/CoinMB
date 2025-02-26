@@ -76,6 +76,15 @@ extension Home {
             
             setupConstraints()
             setupActions()
+            setupAccessibility()
+        }
+
+        private func setupAccessibility() {
+            searchButton.isAccessibilityElement = true
+            searchButton.accessibilityIdentifier = "Home.ContentHeader.searchButton"
+
+            filterButton.isAccessibilityElement = true
+            filterButton.accessibilityIdentifier = "Home.ContentHeader.filterButton"
         }
         
         private func setupConstraints() {

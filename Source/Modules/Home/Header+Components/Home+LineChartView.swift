@@ -70,6 +70,24 @@ extension Home {
             configurePointShadowLayer()
             setupGestureRecognizers()
             updateColors()
+            setupAccessibility()
+        }
+
+        private func setupAccessibility() {
+            isAccessibilityElement = true
+            accessibilityIdentifier = "Home.LineChartView"
+            accessibilityLabel = "Gráfico de linha"
+            accessibilityTraits = [.allowsDirectInteraction, .updatesFrequently]
+            accessibilityHint = "Deslize para explorar os valores do gráfico"
+            
+            // Garantindo que VoiceOver anuncie mudanças de valores
+            accessibilityValue = "Toque e arraste para explorar \(dataPoints.count) pontos de dados"
+        }
+        
+        private func updateAccessibilityValue(for index: Int) {
+            guard index >= 0 && index < dataPoints.count else { return }
+            let value = dataPoints[index]
+            accessibilityValue = "Ponto \(index + 1) de \(dataPoints.count), valor: \(String(format: "%.2f", value))"
         }
         
         private func setupLayers() {
@@ -222,6 +240,9 @@ extension Home {
             feedbackGenerator.selectionChanged()
             lastSelectedIndex = clampedIndex
             selectedPointIndex = clampedIndex
+            
+            // Atualiza o valor de acessibilidade quando um novo ponto é selecionado
+            updateAccessibilityValue(for: clampedIndex)
             
             DispatchQueue.main.async {
                 self.onPointSelected?(clampedIndex, self.dataPoints[clampedIndex])

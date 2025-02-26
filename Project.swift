@@ -61,6 +61,17 @@ let project = Project(
                 .target(name: "CoinMB"),
                 .package(product: "SwiftLintBuildToolPlugin", type: .plugin),
             ]
+        ),
+        .target(
+            name: "SourceUITests",
+            destinations: .iOS,
+            product: .uiTests,
+            bundleId: "org.coinmb.application.uiTests",
+            sources: ["SourceUITests/**"],
+            dependencies: [
+                .target(name: "CoinMB"),
+                .package(product: "SwiftLintBuildToolPlugin", type: .plugin),
+            ]
         )
     ]
 )
