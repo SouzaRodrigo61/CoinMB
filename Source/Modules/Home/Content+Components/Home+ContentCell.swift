@@ -55,6 +55,7 @@ extension Home {
             super.init(frame: frame)
             
             setupView()
+            setupActionGesture()
         }
         
         required init?(coder: NSCoder) {
@@ -93,6 +94,7 @@ extension Home {
         
         // MARK: - Configuration
         
+        var onHandler: (() -> Void)?
         private var currentImageURL: String?
         
         func configure(with model: Home.Repository.CurrentRates.Rate, iconUrl: String? = nil) {
@@ -144,6 +146,14 @@ extension Home {
             super.prepareForReuse()
             currentImageURL = nil
             iconImageView.image = nil
+        }
+        
+        private func setupActionGesture() { 
+            addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleOnTapGesture)))
+        }
+        
+        @objc private func handleOnTapGesture() { 
+            onHandler?()
         }
     }
 }

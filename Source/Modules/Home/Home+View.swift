@@ -32,6 +32,7 @@ extension Home {
         
         private var sections: [Home.View.Section] = []
         var onTimeFilterSelected: ((Home.TimeFilterView.TimeFilter) -> Void)?
+        var onContentTapped: ((Home.Repository.CurrentRates.Rate) -> Void)?
 
         private var viewModel: Home.ViewModel.Model? = nil
         
@@ -232,8 +233,15 @@ extension Home.View: UICollectionViewDelegate, UICollectionViewDataSource {
                         $0.assetId.lowercased() == model.assetIdQuote.lowercased() 
                     }?.url
                     cell.configure(with: model, iconUrl: iconUrl)
+                    
+                    cell.onHandler = { [weak self] in
+                        guard let self else { return }
+                        dump(model, name: "onHandler -> Cell Content")
+                        onContentTapped?(model)
+                    }
                 }
             }
+
             return cell
         }
     }

@@ -9,8 +9,5 @@ import XCTest
 @testable import CoinMB
 
 final class HomeTests: XCTestCase {
-
-    func testExample() {
-        XCTAssertEqual(1, 1)
-    }
+    
 }

@@ -49,9 +49,17 @@ extension Home {
                 make.edges.equalToSuperview()
             }
             
-            // Adiciona o callback para o filtro de tempo
             screen.onTimeFilterSelected = { [weak self] filter in
                 self?.viewModel.updateTimeFilter(filter)
+            }
+            
+            screen.onContentTapped = { [weak self] model in 
+                guard let self else { return }
+                guard let navigationController else { return }
+                
+                let detail = NavigationCoordinator.coordinatorDetail()
+                
+                detail.navigate(navigationController)
             }
         }
 

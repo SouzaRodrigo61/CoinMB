@@ -94,6 +94,10 @@ extension Home {
             }
         }
         
+        private func setupAction() { 
+            
+        }
+        
         private func setupActions() {
             searchButton.addTarget(self, action: #selector(handleSearchTap), for: .touchUpInside)
             filterButton.addTarget(self, action: #selector(handleFilterTap), for: .touchUpInside)
