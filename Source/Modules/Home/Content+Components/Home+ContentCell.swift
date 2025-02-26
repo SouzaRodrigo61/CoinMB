@@ -119,13 +119,11 @@ extension Home {
                 rateLabel.text = String(format: "%.2f", model.rate)
             }
 
-            // Limpa a imagem atual antes de carregar a nova
             iconImageView.image = nil
             
             if let iconUrl = iconUrl {
                 loadImage(from: iconUrl)
             } else {
-                // Define o ícone padrão do SF Symbols quando não houver URL
                 if let fallbackImage = UIImage(systemName: "dollarsign.circle.fill") {
                     iconImageView.image = fallbackImage
                     iconImageView.tintColor = .systemFill
@@ -134,12 +132,10 @@ extension Home {
         }
         
         private func loadImage(from urlString: String) {
-            // Guarda a URL atual
             self.currentImageURL = urlString
             Task(priority: .background) {
                 ImageCache.shared.loadImage(from: urlString) { [weak self] image in
                     DispatchQueue.main.async {
-                        // Só atualiza a imagem se esta célula ainda estiver esperando por esta URL específica
                         if self?.currentImageURL == urlString, 
                         let image = image {
                             self?.iconImageView.image = image

@@ -137,7 +137,6 @@ extension Home {
     }
 }
 
-// Adicione esta extensão helper para encontrar o viewController
 private extension UIView {
     func findViewController() -> UIViewController? {
         if let nextResponder = self.next as? UIViewController {

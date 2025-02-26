@@ -21,7 +21,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let window = UIWindow(windowScene: windowScene)
         let navigationController = UINavigationController()
 
-        // Usando o Coordinating para gerenciar o fluxo da navegação
         let rootCoordinator: NavigationCoordinator = .home
         rootCoordinator.navigate(navigationController)
 
@@ -29,8 +28,6 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         self.window = window
         window.makeKeyAndVisible()
     }
-
-    // Outros métodos do ciclo de vida da cena podem ser implementados conforme necessário:
 
     func sceneDidDisconnect(_ scene: UIScene) {
         // Chamado quando a cena é descartada.

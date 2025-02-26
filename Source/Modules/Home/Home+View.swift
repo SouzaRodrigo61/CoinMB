@@ -289,11 +289,9 @@ extension Home.View: UICollectionViewDelegate, UICollectionViewDataSource {
             )
             
             header.onFilterTapped = { [weak self] in 
-                dump("onFilterTapped")
             }
             
             header.onSearchTapped = { [weak self] in 
-                dump("onSearchTapped")
             }
 
             return header

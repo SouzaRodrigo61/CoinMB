@@ -63,7 +63,6 @@ extension Home {
             layer.cornerRadius = Design.cornerRadius
             clipsToBounds = true
             
-            // Adicionar efeito de blur
             let blurEffect = UIBlurEffect(style: .systemMaterial)
             let blurView = UIVisualEffectView(effect: blurEffect)
             blurView.frame = bounds

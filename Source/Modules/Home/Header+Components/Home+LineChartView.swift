@@ -79,8 +79,6 @@ extension Home {
             accessibilityLabel = "Gráfico de linha"
             accessibilityTraits = [.allowsDirectInteraction, .updatesFrequently]
             accessibilityHint = "Deslize para explorar os valores do gráfico"
-            
-            // Garantindo que VoiceOver anuncie mudanças de valores
             accessibilityValue = "Toque e arraste para explorar \(dataPoints.count) pontos de dados"
         }
         
@@ -241,7 +239,6 @@ extension Home {
             lastSelectedIndex = clampedIndex
             selectedPointIndex = clampedIndex
             
-            // Atualiza o valor de acessibilidade quando um novo ponto é selecionado
             updateAccessibilityValue(for: clampedIndex)
             
             DispatchQueue.main.async {

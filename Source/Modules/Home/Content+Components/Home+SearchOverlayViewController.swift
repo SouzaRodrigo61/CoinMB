@@ -276,11 +276,9 @@ private extension Home.SearchOverlayViewController {
     }
     
     func setupGestures() {
-        // Adiciona o pan gesture para drag
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePanGesture))
         overlayContainer.addGestureRecognizer(panGesture)
         
-        // Adiciona tap no blur para dismiss
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleBlurTap))
         blurView.addGestureRecognizer(tapGesture)
         
@@ -292,7 +290,6 @@ private extension Home.SearchOverlayViewController {
     }
     
     func setupInitialState() {
-        // Configura alpha inicial dos elementos
         blurView.alpha = 0
         overlayContainer.alpha = 0
         closeButton.alpha = 0
@@ -436,24 +433,19 @@ extension Home.SearchOverlayViewController {
             let xOffset = touchPoint.x - initialTouchPoint.x
             let yOffset = touchPoint.y - initialTouchPoint.y
             
-            // Calcula o progresso baseado no maior offset (x ou y)
             let progress = min(1, max(abs(xOffset), abs(yOffset)) / 200)
             
-            // Aplica transformação e escala
             let scale = 1.0 - (progress * 0.2)
             let translation = CGAffineTransform(translationX: xOffset, y: yOffset)
             let scaling = CGAffineTransform(scaleX: scale, y: scale)
             
-            // Adiciona uma leve rotação baseada na direção do drag
-            let angle = (xOffset / 500) * (.pi / 8) // máximo de 22.5 graus
+            let angle = (xOffset / 500) * (.pi / 8)
             let rotation = CGAffineTransform(rotationAngle: angle)
             
-            // Combina todas as transformações
             overlayContainer.transform = translation
                 .concatenating(scaling)
                 .concatenating(rotation)
             
-            // Ajusta opacidades mantendo valores mais altos
             let minBlurAlpha: CGFloat = 0.5
             let minOverlayAlpha: CGFloat = 0.8
             blurView.alpha = max(minBlurAlpha, 1 - progress)
@@ -466,12 +458,10 @@ extension Home.SearchOverlayViewController {
             let xOffset = touchPoint.x - initialTouchPoint.x
             let yOffset = touchPoint.y - initialTouchPoint.y
             
-            // Verifica se deve dismissar baseado na velocidade ou distância
             let shouldDismiss = abs(velocity.x) > 500 || abs(velocity.y) > 500 ||
                               abs(xOffset) > 200 || abs(yOffset) > 200
             
             if shouldDismiss {
-                // Determina a direção do dismiss
                 let isHorizontal = abs(velocity.x) > abs(velocity.y)
                 let dismissVelocity = CGPoint(
                     x: isHorizontal ? velocity.x : 0,
@@ -479,7 +469,6 @@ extension Home.SearchOverlayViewController {
                 )
                 dismissWithAnimation(velocity: dismissVelocity)
             } else {
-                // Retorna à posição original com animação spring
                 UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.2) {
                     self.overlayContainer.transform = .identity
                     self.blurView.alpha = 1

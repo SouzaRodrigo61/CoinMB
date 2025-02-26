@@ -136,8 +136,6 @@ extension Home {
                 message = error.localizedDescription
             }
             
-            // Para erros de ícone, podemos apenas logar, já que não é crítico
-            print("Erro de ícone: \(message)")
         }
         
         private func showErrorAlert(title: String, message: String) {

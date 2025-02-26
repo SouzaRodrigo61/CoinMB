@@ -30,7 +30,6 @@ extension Detail {
         override func viewWillAppear(_ animated: Bool) {
             super.viewWillAppear(animated)
             
-            // reapresenta o navigation bar
             navigationController?.setNavigationBarHidden(false, animated: animated)
         }
 
