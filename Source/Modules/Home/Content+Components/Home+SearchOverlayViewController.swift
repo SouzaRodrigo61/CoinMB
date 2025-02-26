@@ -68,11 +68,21 @@ extension Home {
             return view
         }()
         
-        private lazy var cryptoLabel: UILabel = {
-            let label = UILabel()
-            label.text = "Qual criptomoeda?"
-            label.font = .systemFont(ofSize: 16, weight: .medium)
-            return label
+        private lazy var cryptoTextField: UITextField = {
+            let tf = UITextField()
+            tf.placeholder = "Selecione uma criptomoeda"
+            tf.font = .systemFont(ofSize: 16, weight: .medium)
+            tf.textColor = .label
+            tf.isUserInteractionEnabled = false // Impede edição direta
+            tf.text = "Bitcoin" // Valor pré-selecionado
+            
+            // Ícone de seta
+            let arrowImageView = UIImageView(image: UIImage(systemName: "chevron.down"))
+            arrowImageView.tintColor = .secondaryLabel
+            tf.rightView = arrowImageView
+            tf.rightViewMode = .always
+            
+            return tf
         }()
         
         private lazy var rangeLabel: UILabel = {
@@ -110,7 +120,7 @@ extension Home {
             overlayContainer.addSubview(rangeContainer)
             overlayContainer.addSubview(searchButton)
             
-            cryptoContainer.addSubview(cryptoLabel)
+            cryptoContainer.addSubview(cryptoTextField)
             rangeContainer.addSubview(rangeLabel)
             
             setupConstraints()
@@ -137,8 +147,8 @@ extension Home {
                 make.height.equalTo(56)
             }
             
-            cryptoLabel.snp.makeConstraints { make in
-                make.leading.equalTo(cryptoContainer).offset(16)
+            cryptoTextField.snp.makeConstraints { make in
+                make.leading.trailing.equalTo(cryptoContainer).inset(16)
                 make.centerY.equalTo(cryptoContainer)
             }
             
