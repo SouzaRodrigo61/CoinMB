@@ -236,7 +236,6 @@ extension Home.View: UICollectionViewDelegate, UICollectionViewDataSource {
                     
                     cell.onHandler = { [weak self] in
                         guard let self else { return }
-                        dump(model, name: "onHandler -> Cell Content")
                         onContentTapped?(model)
                     }
                 }

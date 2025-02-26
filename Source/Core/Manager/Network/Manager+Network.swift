@@ -28,21 +28,21 @@ extension Manager.Network {
         static let `default` = Configuration(
             baseURL: URL(string: "...")!,
             timeout: 10,
-            retryCount: 3, 
+            retryCount: 0, 
             token: ""
         )
         
         static let exchangeRate = Configuration(
             baseURL: URL(string: "https://api-realtime.exrates.coinapi.io")!,
             timeout: 10,
-            retryCount: 3, 
+            retryCount: 0, 
             token: "f00dffe4-e2b7-4267-8eb3-063dd54cda1b"
         )
         
         static let marketData = Configuration(
             baseURL: URL(string: "https://rest.coinapi.io")!,
             timeout: 10,
-            retryCount: 3, 
+            retryCount: 0, 
             token: "5924401f-d529-4351-a444-0d4a23198079"
         )
     }

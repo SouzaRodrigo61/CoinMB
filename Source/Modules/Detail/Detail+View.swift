@@ -66,8 +66,6 @@ extension Detail.View: UITableViewDataSource, UITableViewDelegate {
         }
         
         guard let viewModel else { return UITableViewCell() }
-        
-        dump(viewModel, name: "cellForRowAt")
         cell.configure(with: viewModel)
         
         return cell
@@ -75,7 +73,6 @@ extension Detail.View: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        dump("didSelectRowAt: \(indexPath.row)", name: "didSelectRowAt -> Table View")
     }
 }
 

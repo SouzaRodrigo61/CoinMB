@@ -38,19 +38,6 @@ extension Detail {
             return label
         }()
         
-        private let changePercentLabel: UILabel = {
-            let label = UILabel()
-            label.font = .systemFont(ofSize: 14, weight: .medium)
-            return label
-        }()
-        
-        private let volumeLabel: UILabel = {
-            let label = UILabel()
-            label.font = .systemFont(ofSize: 14, weight: .regular)
-            label.textColor = .secondaryLabel
-            return label
-        }()
-        
         private let infoStackView: UIStackView = {
             let stack = UIStackView()
             stack.axis = .horizontal
@@ -84,11 +71,7 @@ extension Detail {
             contentView.addSubview(stackView)
             stackView.addArrangedSubview(titleLabel)
             stackView.addArrangedSubview(subtitleLabel)
-            
-            infoStackView.addArrangedSubview(priceLabel)
-            infoStackView.addArrangedSubview(changePercentLabel)
-            infoStackView.addArrangedSubview(volumeLabel)
-            stackView.addArrangedSubview(infoStackView)
+            stackView.addArrangedSubview(priceLabel)
             
             stackView.snp.makeConstraints { make in
                 make.edges.equalToSuperview().inset(16)
@@ -100,15 +83,22 @@ extension Detail {
             
             // Formatação da data
             let dateFormatter = DateFormatter()
-            dateFormatter.dateStyle = .medium
-            dateFormatter.timeStyle = .short
-            dateFormatter.locale = Locale(identifier: "pt_BR")
-            subtitleLabel.text = dateFormatter.string(from: model.time)
+            dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ" // formato ISO 8601
+            
+            if let date = dateFormatter.date(from: model.time) {
+                dateFormatter.dateStyle = .medium
+                dateFormatter.timeStyle = .short
+                dateFormatter.locale = Locale(identifier: "pt_BR")
+                subtitleLabel.text = dateFormatter.string(from: date)
+            } else {
+                subtitleLabel.text = model.time // fallback caso a conversão falhe
+            }
             
             // Formatação da moeda
             let numberFormatter = NumberFormatter()
             numberFormatter.numberStyle = .currency
-            numberFormatter.locale = Locale(identifier: "en")
+            numberFormatter.locale = Locale(identifier: "en_US")
+            numberFormatter.currencyCode = "USD"
             priceLabel.text = numberFormatter.string(from: NSNumber(value: model.rate))
         }
         
