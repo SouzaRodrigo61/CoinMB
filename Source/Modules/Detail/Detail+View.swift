@@ -13,9 +13,15 @@ extension Detail {
 
         // MARK: - Properties
 
-        private let tableView: UITableView = {
+        private lazy var tableView: UITableView = {
             let tableView = UITableView()
             tableView.backgroundColor = .systemBackground
+            
+            tableView.register(Detail.ContentCell.self, forCellReuseIdentifier: Detail.ContentCell.identifier)   
+            tableView.dataSource = self
+            tableView.delegate = self
+            tableView.separatorStyle = .none
+            
             tableView.translatesAutoresizingMaskIntoConstraints = false
             return tableView
         }()
@@ -41,12 +47,6 @@ extension Detail {
             tableView.snp.makeConstraints { make in
                 make.edges.equalToSuperview()
             }
-
-            tableView.register(Detail.ContentCell.self, forCellReuseIdentifier: Detail.ContentCell.identifier)   
-            tableView.dataSource = self
-            tableView.delegate = self
-            tableView.separatorStyle = .singleLine
-            tableView.backgroundColor = .clear
         }
     }
 }
@@ -65,7 +65,10 @@ extension Detail.View: UITableViewDataSource, UITableViewDelegate {
             return UITableViewCell()
         }
         
-        cell.configure(title: viewModel?.assetIdQuote ?? "", subtitle: String(viewModel?.rate ?? 0))
+        guard let viewModel else { return UITableViewCell() }
+        
+        dump(viewModel, name: "cellForRowAt")
+        cell.configure(with: viewModel)
         
         return cell
     }

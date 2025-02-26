@@ -37,8 +37,9 @@ extension Detail {
         override func viewDidLoad() {
             super.viewDidLoad()
             setupConstraints()
-
+            
             // MARK: Configure
+            setupSink()
         }
 
         private func setupConstraints() {
