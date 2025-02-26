@@ -9,7 +9,12 @@ import UIKit
 
 enum Home {
     static func builder() -> UIViewController {
-        let viewModel = ViewModel()
+        var viewModel = ViewModel()
+
+        if ProcessInfo.processInfo.arguments.contains("UI_TESTING") {
+            viewModel = ViewModel(repository: .mockSuccess)
+        }
+        
         let viewController = ViewController(viewModel: viewModel)
 
         return viewController

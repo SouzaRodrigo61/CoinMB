@@ -9,42 +9,38 @@ import XCTest
 @testable import CoinMB
 
 final class HomeUITests: XCTestCase {
-
-    func testHomeView() {
-        let app = XCUIApplication()
-        app.launch()
-
-        let homeView = app.otherElements["homeView"]
+    var app: XCUIApplication!
+    
+    override func setUp() {
+        super.setUp()
+        app = XCUIApplication()
+        // Configura o ambiente mockado através de argumentos de inicialização
+        app.launchArguments = ["UI_TESTING"]
+        app.launchEnvironment = ["MOCK_NETWORK": "true"]
     }
 
     func testSearchButton() {
-        let app = XCUIApplication()
         app.launch()
-
         let searchButton = app.buttons["Home.ContentHeader.searchButton"]
         searchButton.tap()
+        // Adicione verificações para o comportamento esperado com dados mockados
     }
 
     func testFilterButton() {
-        let app = XCUIApplication()
         app.launch()
-
         let filterButton = app.buttons["Home.ContentHeader.filterButton"]
         filterButton.tap()
     }
 
     func testContentCell() {
-        let app = XCUIApplication()
         app.launch()
-
-        let contentCell = app.cells["Home.ContentCell"]
+        let contentCell = app.otherElements["Home.ContentCell.USD"]
+        XCTAssertTrue(contentCell.exists, "A célula USD deveria estar visível")
         contentCell.tap()
     }
 
     func testLineChartView() {
-        let app = XCUIApplication()
         app.launch()
-
         let lineChartView = app.otherElements["Home.LineChartView"]
         
         // Realiza o gesto de dragging da direita para a esquerda

@@ -56,7 +56,6 @@ extension Home {
             
             setupView()
             setupActionGesture()
-            setupAccessibility()
         }
         
         required init?(coder: NSCoder) {
@@ -93,9 +92,9 @@ extension Home {
             }
         }
 
-        private func setupAccessibility() {
-            isAccessibilityElement = true
-            accessibilityIdentifier = "Home.ContentCell"
+        private func setupAccessibility(with assetId: String) {
+            containerView.isAccessibilityElement = true
+            containerView.accessibilityIdentifier = "Home.ContentCell.\(assetId)"
         }
         
         // MARK: - Configuration
@@ -105,6 +104,8 @@ extension Home {
         
         func configure(with model: Home.Repository.CurrentRates.Rate, iconUrl: String? = nil) {
             assetLabel.text = model.assetIdQuote
+
+            setupAccessibility(with: model.assetIdQuote)
             
             let formatter = NumberFormatter()
             formatter.numberStyle = .currency
