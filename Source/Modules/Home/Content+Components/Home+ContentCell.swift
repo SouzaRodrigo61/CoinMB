@@ -94,7 +94,7 @@ extension Home {
 
         private func setupAccessibility(with assetId: String) {
             containerView.isAccessibilityElement = true
-            containerView.accessibilityIdentifier = "Home.ContentCell.\(assetId)"
+            containerView.accessibilityIdentifier = "Home.ContentCell.\(assetId.uppercased())"
         }
         
         // MARK: - Configuration
