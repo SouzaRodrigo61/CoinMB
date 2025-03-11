@@ -118,6 +118,42 @@ extension Home {
             case .fiveYears:
                 startDate = calendar.date(byAdding: .year, value: -5, to: .now) ?? .now
                 periodId = "10DAY"
+            case .threeDays:
+                
+                    startDate = calendar.date(byAdding: .year, value: -5, to: .now) ?? .now
+                    periodId = "10DAY"
+            case .twoWeeks:
+                
+                    startDate = calendar.date(byAdding: .year, value: -5, to: .now) ?? .now
+                    periodId = "10DAY"
+            case .twoMonths:
+                
+                    startDate = calendar.date(byAdding: .year, value: -5, to: .now) ?? .now
+                    periodId = "10DAY"
+            case .threeMonths:
+                
+                    startDate = calendar.date(byAdding: .year, value: -5, to: .now) ?? .now
+                    periodId = "10DAY"
+            case .nineMonths:
+                
+                    startDate = calendar.date(byAdding: .year, value: -5, to: .now) ?? .now
+                    periodId = "10DAY"
+            case .twoYears:
+                
+                    startDate = calendar.date(byAdding: .year, value: -5, to: .now) ?? .now
+                    periodId = "10DAY"
+            case .threeYears:
+                
+                    startDate = calendar.date(byAdding: .year, value: -5, to: .now) ?? .now
+                    periodId = "10DAY"
+            case .tenYears:
+                
+                    startDate = calendar.date(byAdding: .year, value: -5, to: .now) ?? .now
+                    periodId = "10DAY"
+            case .max:
+                
+                    startDate = calendar.date(byAdding: .year, value: -5, to: .now) ?? .now
+                    periodId = "10DAY"
             }
             
             selectedStartDate = startDate
