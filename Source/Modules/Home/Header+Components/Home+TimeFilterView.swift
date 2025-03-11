@@ -15,9 +15,11 @@ extension Home {
         private let collectionView: UICollectionView
         private let selectionIndicator = UIView()
         private let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
+        private let swipeGestureRecognizer = UIPanGestureRecognizer()
         
         private var selectedIndexPath: IndexPath?
         private var isDragging = false
+        private var initialSwipeX: CGFloat = 0
         
         var onFilterSelected: ((TimeFilter) -> Void)?
         
@@ -46,24 +48,29 @@ extension Home {
         }
         
         private enum Design {
-            static let cornerRadius: CGFloat = 28
-            static let cellHeight: CGFloat = 40
-            static let cellWidth: CGFloat = 52
-            static let cellSpacing: CGFloat = 14
-            static let horizontalPadding: CGFloat = 16
-            static let verticalPadding: CGFloat = 8
+            static let cornerRadius: CGFloat = 24
+            static let cellHeight: CGFloat = 32
+            static let cellWidth: CGFloat = 40
+            static let cellSpacing: CGFloat = 10
+            static let horizontalPadding: CGFloat = 8
+            static let verticalPadding: CGFloat = 4
             
-            static let normalAnimationDuration: TimeInterval = 0.4
-            static let dragAnimationDuration: TimeInterval = 0.2
-            static let springDamping: CGFloat = 0.65
+            static let normalAnimationDuration: TimeInterval = 0.3
+            static let dragAnimationDuration: TimeInterval = 0.15
+            static let springDamping: CGFloat = 0.7
             static let springVelocity: CGFloat = 0.4
             
             static let swipeVelocityThreshold: CGFloat = 200
+            static let swipeDistanceThreshold: CGFloat = 20
             
-            static let indicatorShadowOpacity: Float = 0.15
-            static let indicatorShadowRadius: CGFloat = 6
+            static let indicatorShadowOpacity: Float = 0.2
+            static let indicatorShadowRadius: CGFloat = 4
             
-            static let backgroundOpacity: CGFloat = 0.9
+            // Cores no estilo da imagem compartilhada
+            static let backgroundColor = UIColor(red: 0.12, green: 0.12, blue: 0.12, alpha: 1.0)
+            static let selectedColor = UIColor(red: 0.25, green: 0.4, blue: 0.9, alpha: 1.0)
+            static let textColor = UIColor.white
+            static let unselectedTextColor = UIColor.white.withAlphaComponent(0.6)
         }
         
         // MARK: - FilterCell
@@ -92,7 +99,7 @@ extension Home {
                 contentView.addSubview(titleLabel)
                 
                 titleLabel.textAlignment = .center
-                titleLabel.font = .systemFont(ofSize: 16, weight: .bold)
+                titleLabel.font = .systemFont(ofSize: 14, weight: .semibold)
                 
                 titleLabel.snp.makeConstraints { make in
                     make.edges.equalToSuperview()
@@ -103,8 +110,7 @@ extension Home {
             
             private func updateAppearance() {
                 UIView.animate(withDuration: 0.2) {
-                    self.titleLabel.textColor = self.isSelected ? .label : .secondaryLabel.withAlphaComponent(0.7)
-                    self.titleLabel.transform = self.isSelected ? CGAffineTransform(scaleX: 1.1, y: 1.1) : .identity
+                    self.titleLabel.textColor = self.isSelected ? Design.textColor : Design.unselectedTextColor
                 }
             }
             
@@ -114,105 +120,147 @@ extension Home {
         }
         
         // MARK: - Custom Layout
-        private class CenteredCollectionViewFlowLayout: UICollectionViewFlowLayout {
-            override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
-                guard let collectionView = collectionView else {
-                    return super.targetContentOffset(forProposedContentOffset: proposedContentOffset, withScrollingVelocity: velocity)
-                }
-                
-                // Área visível
-                let targetRect = CGRect(origin: proposedContentOffset, size: collectionView.bounds.size)
-                
-                // Encontra os atributos de layout para os itens na área visível
-                guard let layoutAttributesArray = layoutAttributesForElements(in: targetRect) else {
-                    return super.targetContentOffset(forProposedContentOffset: proposedContentOffset, withScrollingVelocity: velocity)
-                }
-                
-                // Ponto central da área visível
-                let horizontalCenter = proposedContentOffset.x + collectionView.bounds.width / 2
-                
-                // Encontra o item mais próximo do centro
-                var closestAttribute: UICollectionViewLayoutAttributes?
-                var minDistance: CGFloat = .greatestFiniteMagnitude
-                
-                for attributes in layoutAttributesArray {
-                    let distance = abs(attributes.center.x - horizontalCenter)
-                    if distance < minDistance {
-                        minDistance = distance
-                        closestAttribute = attributes
-                    }
-                }
-                
-                // Retorna o offset que centraliza o item
-                if let closestAttribute = closestAttribute {
-                    return CGPoint(x: closestAttribute.center.x - collectionView.bounds.width / 2, y: proposedContentOffset.y)
-                }
-                
-                return super.targetContentOffset(forProposedContentOffset: proposedContentOffset, withScrollingVelocity: velocity)
+        private class FilterFlowLayout: UICollectionViewFlowLayout {
+            override func prepare() {
+                super.prepare()
+                scrollDirection = .horizontal
+                minimumInteritemSpacing = Design.cellSpacing
+                minimumLineSpacing = Design.cellSpacing
+                sectionInset = UIEdgeInsets(top: Design.verticalPadding, 
+                                           left: Design.horizontalPadding, 
+                                           bottom: Design.verticalPadding, 
+                                           right: Design.horizontalPadding)
             }
         }
         
         // MARK: - Init
         override init(frame: CGRect) {
             // Configuração do layout da collection view
-            let layout = CenteredCollectionViewFlowLayout()
-            layout.scrollDirection = .horizontal
-            layout.minimumInteritemSpacing = Design.cellSpacing
-            layout.minimumLineSpacing = Design.cellSpacing
-            
-            // Calcula o inset para garantir que os itens das extremidades fiquem centralizados
-            let totalItemWidth = Design.cellWidth * CGFloat(TimeFilter.allCases.count)
-            let totalSpacingWidth = Design.cellSpacing * CGFloat(TimeFilter.allCases.count - 1)
-            let totalWidth = totalItemWidth + totalSpacingWidth
+            let layout = FilterFlowLayout()
             
             // Inicialização da collection view
             collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
             
             super.init(frame: frame)
             setupView()
+            setupGestures()
         }
         
         required init?(coder: NSCoder) {
             // Configuração do layout da collection view
-            let layout = CenteredCollectionViewFlowLayout()
-            layout.scrollDirection = .horizontal
-            layout.minimumInteritemSpacing = Design.cellSpacing
-            layout.minimumLineSpacing = Design.cellSpacing
+            let layout = FilterFlowLayout()
             
             // Inicialização da collection view
             collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
             
             super.init(coder: coder)
             setupView()
+            setupGestures()
         }
         
         // MARK: - Setup
         private func setupView() {
-            backgroundColor = .systemGray6.withAlphaComponent(Design.backgroundOpacity)
+            backgroundColor = Design.backgroundColor
             layer.cornerRadius = Design.cornerRadius
             clipsToBounds = true
             
-            // Adiciona efeito de vidro fosco (blur)
-            let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
-            let blurView = UIVisualEffectView(effect: blurEffect)
-            blurView.frame = bounds
-            blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-            insertSubview(blurView, at: 0)
-            
-            // Adiciona borda sutil
+            // Adiciona uma borda sutil para melhorar a definição visual
             layer.borderWidth = 0.5
-            layer.borderColor = UIColor.white.withAlphaComponent(0.2).cgColor
+            layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
             
             setupCollectionView()
             setupSelectionIndicator()
             feedbackGenerator.prepare()
+        }
+        
+        private func setupGestures() {
+            swipeGestureRecognizer.addTarget(self, action: #selector(handleSwipe(_:)))
+            swipeGestureRecognizer.delegate = self
+            addGestureRecognizer(swipeGestureRecognizer)
+        }
+        
+        @objc private func handleSwipe(_ gesture: UIPanGestureRecognizer) {
+            let translation = gesture.translation(in: self)
+            let velocity = gesture.velocity(in: self)
             
-            // Adiciona efeito de sombra ao componente
-            layer.shadowColor = UIColor.black.cgColor
-            layer.shadowOffset = CGSize(width: 0, height: 4)
-            layer.shadowRadius = 8
-            layer.shadowOpacity = 0.1
-            layer.masksToBounds = false
+            switch gesture.state {
+            case .began:
+                initialSwipeX = translation.x
+                isDragging = true
+                feedbackGenerator.prepare()
+                
+            case .changed:
+                // Encontra o item mais próximo com base na posição do dedo
+                let deltaX = translation.x - initialSwipeX
+                
+                if abs(deltaX) > Design.swipeDistanceThreshold {
+                    guard let currentIndexPath = selectedIndexPath else { return }
+                    
+                    // Determina a direção do swipe (corrigido para corresponder à direção do dedo)
+                    // Deslizar para a direita -> avança para o próximo item (direção positiva)
+                    // Deslizar para a esquerda -> volta para o item anterior (direção negativa)
+                    let direction = deltaX > 0 ? 1 : -1
+                    let targetItem = currentIndexPath.item + direction
+                    
+                    // Verifica se o item alvo está dentro dos limites
+                    if targetItem >= 0 && targetItem < TimeFilter.allCases.count {
+                        let targetIndexPath = IndexPath(item: targetItem, section: 0)
+                        
+                        // Só atualiza se for um novo item
+                        if targetIndexPath != selectedIndexPath {
+                            if let cell = collectionView.cellForItem(at: targetIndexPath) {
+                                updateSelectionIndicator(for: cell, animated: true)
+                                
+                                // Atualiza a seleção visual
+                                if let previousCell = collectionView.cellForItem(at: currentIndexPath) as? FilterCell {
+                                    previousCell.isSelected = false
+                                }
+                                
+                                if let cell = cell as? FilterCell {
+                                    cell.isSelected = true
+                                }
+                                
+                                selectedIndexPath = targetIndexPath
+                                
+                                // Notifica sobre a mudança de filtro
+                                if let filter = TimeFilter.allCases[safe: targetIndexPath.item] {
+                                    feedbackGenerator.impactOccurred(intensity: 0.3)
+                                    onFilterSelected?(filter)
+                                }
+                                
+                                // Reseta a posição inicial para permitir swipes contínuos
+                                initialSwipeX = translation.x
+                            }
+                        }
+                    }
+                }
+                
+            case .ended, .cancelled:
+                isDragging = false
+                
+                // Verifica se há um swipe rápido para mudar vários itens
+                if abs(velocity.x) > Design.swipeVelocityThreshold {
+                    // Corrige a direção para corresponder ao movimento do dedo
+                    let direction = velocity.x > 0 ? 1 : -1
+                    handleFastSwipe(direction: direction)
+                }
+                
+            default:
+                break
+            }
+        }
+        
+        private func handleFastSwipe(direction: Int) {
+            guard let currentIndexPath = selectedIndexPath else { return }
+            
+            // Calcula o novo índice com base na velocidade
+            let targetItem = max(0, min(TimeFilter.allCases.count - 1, currentIndexPath.item + direction))
+            let targetIndexPath = IndexPath(item: targetItem, section: 0)
+            
+            // Só atualiza se for um novo item
+            if targetIndexPath != selectedIndexPath {
+                selectItem(at: targetIndexPath)
+            }
         }
         
         private func setupCollectionView() {
@@ -231,15 +279,12 @@ extension Home {
                 make.edges.equalToSuperview()
             }
             
-            // Ajusta os insets para permitir que os itens das extremidades fiquem centralizados
+            // Seleciona o primeiro item por padrão
             DispatchQueue.main.async { [weak self] in
                 guard let self = self else { return }
-                let inset = (self.collectionView.bounds.width - Design.cellWidth) / 2
-                self.collectionView.contentInset = UIEdgeInsets(top: 0, left: inset, bottom: 0, right: inset)
                 
-                // Seleciona o primeiro item por padrão
                 let indexPath = IndexPath(item: 0, section: 0)
-                self.collectionView.selectItem(at: indexPath, animated: false, scrollPosition: .centeredHorizontally)
+                self.collectionView.selectItem(at: indexPath, animated: false, scrollPosition: .left)
                 self.selectedIndexPath = indexPath
                 
                 if let cell = self.collectionView.cellForItem(at: indexPath) {
@@ -253,20 +298,10 @@ extension Home {
         }
         
         private func setupSelectionIndicator() {
-            // Cria um gradiente para o indicador de seleção
-            let gradientLayer = CAGradientLayer()
-            gradientLayer.colors = [
-                UIColor.systemBlue.withAlphaComponent(0.9).cgColor,
-                UIColor.systemIndigo.withAlphaComponent(0.8).cgColor
-            ]
-            gradientLayer.startPoint = CGPoint(x: 0, y: 0)
-            gradientLayer.endPoint = CGPoint(x: 1, y: 1)
-            gradientLayer.cornerRadius = Design.cellHeight / 2
-            
-            selectionIndicator.layer.insertSublayer(gradientLayer, at: 0)
+            selectionIndicator.backgroundColor = Design.selectedColor
             selectionIndicator.layer.cornerRadius = Design.cellHeight / 2
-            selectionIndicator.layer.shadowColor = UIColor.systemBlue.cgColor
-            selectionIndicator.layer.shadowOffset = CGSize(width: 0, height: 3)
+            selectionIndicator.layer.shadowColor = Design.selectedColor.cgColor
+            selectionIndicator.layer.shadowOffset = CGSize(width: 0, height: 2)
             selectionIndicator.layer.shadowRadius = Design.indicatorShadowRadius
             selectionIndicator.layer.shadowOpacity = Design.indicatorShadowOpacity
             insertSubview(selectionIndicator, belowSubview: collectionView)
@@ -276,19 +311,6 @@ extension Home {
                 make.width.equalTo(Design.cellWidth)
                 make.centerY.equalToSuperview()
                 make.leading.equalTo(Design.horizontalPadding)
-            }
-            
-            // Atualiza o frame do gradiente quando o tamanho do indicador muda
-            selectionIndicator.layer.layoutSublayers()
-            gradientLayer.frame = selectionIndicator.bounds
-        }
-        
-        override func layoutSubviews() {
-            super.layoutSubviews()
-            
-            // Atualiza o frame do gradiente quando o tamanho do indicador muda
-            if let gradientLayer = selectionIndicator.layer.sublayers?.first as? CAGradientLayer {
-                gradientLayer.frame = selectionIndicator.bounds
             }
         }
         
@@ -325,8 +347,16 @@ extension Home {
             if let cell = collectionView.cellForItem(at: indexPath) as? FilterCell {
                 cell.isSelected = true
                 
-                // Centraliza o item selecionado
-                collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: animated)
+                // Scroll para garantir que o item selecionado esteja visível
+                // Usa .left para manter o comportamento não centralizado
+                var scrollPosition: UICollectionView.ScrollPosition = .left
+                
+                // Se o item estiver próximo do final, usa .right para garantir visibilidade
+                if indexPath.item > TimeFilter.allCases.count - 3 {
+                    scrollPosition = .right
+                }
+                
+                collectionView.scrollToItem(at: indexPath, at: scrollPosition, animated: animated)
                 
                 // Atualiza o indicador de seleção
                 updateSelectionIndicator(for: cell, animated: animated)
@@ -356,6 +386,19 @@ extension Home {
             let previousIndexPath = IndexPath(item: currentIndexPath.item - 1, section: 0)
             selectItem(at: previousIndexPath)
         }
+        
+        // Método para ajustar o tamanho do componente
+        override var intrinsicContentSize: CGSize {
+            return CGSize(width: UIView.noIntrinsicMetric, height: Design.cellHeight + 2 * Design.verticalPadding)
+        }
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+extension Home.TimeFilterView: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        // Permite que o gesto de swipe funcione simultaneamente com o scroll da collection view
+        return true
     }
 }
 
@@ -433,10 +476,6 @@ extension Home.TimeFilterView: UICollectionViewDelegate, UICollectionViewDelegat
         }
     }
     
-    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        // O layout personalizado já cuida da centralização
-    }
-    
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if !decelerate {
             isDragging = false
@@ -483,17 +522,22 @@ extension Collection {
     }
 }
 
-// MARK: - SwiftUI Preview
 #if DEBUG
+// MARK: - SwiftUI Preview
 import SwiftUI
 
 struct TimeFilterViewPreview: PreviewProvider {
     static var previews: some View {
-        TimeFilterViewRepresentable()
-            .frame(height: 60)
-            .padding()
-            .previewLayout(.sizeThatFits)
-            .preferredColorScheme(.dark)
+        VStack {
+            TimeFilterViewRepresentable()
+                .frame(height: 40)
+                .padding(.horizontal)
+            
+            Spacer()
+        }
+        .background(Color.black)
+        .previewLayout(.sizeThatFits)
+        .preferredColorScheme(.dark)
     }
     
     struct TimeFilterViewRepresentable: UIViewRepresentable {
