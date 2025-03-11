@@ -13,7 +13,6 @@ extension Home {
     class TimeFilterView: UIView {
         // MARK: - Properties
         private let collectionView: UICollectionView
-        private let selectionIndicator = UIView()
         private let feedbackGenerator = UIImpactFeedbackGenerator(style: .medium)
         private let swipeGestureRecognizer = UIPanGestureRecognizer()
         
@@ -59,7 +58,6 @@ extension Home {
             layer.borderColor = UIColor.white.withAlphaComponent(0.1).cgColor
             
             setupCollectionView()
-            setupSelectionIndicator()
             feedbackGenerator.prepare()
         }
         
@@ -97,30 +95,9 @@ extension Home {
                 self.collectionView.selectItem(at: indexPath, animated: false, scrollPosition: .centeredHorizontally)
                 self.selectedIndexPath = indexPath
                 
-                if let cell = self.collectionView.cellForItem(at: indexPath) {
-                    self.updateSelectionIndicator(for: cell, animated: false)
-                }
-                
                 if let filter = TimeFilter.allCases[safe: 0] {
                     self.onFilterSelected?(filter)
                 }
-            }
-        }
-        
-        private func setupSelectionIndicator() {
-            selectionIndicator.backgroundColor = Design.selectedColor
-            selectionIndicator.layer.cornerRadius = Design.cellHeight / 2
-            selectionIndicator.layer.shadowColor = Design.selectedColor.cgColor
-            selectionIndicator.layer.shadowOffset = CGSize(width: 0, height: 2)
-            selectionIndicator.layer.shadowRadius = Design.indicatorShadowRadius
-            selectionIndicator.layer.shadowOpacity = Design.indicatorShadowOpacity
-            insertSubview(selectionIndicator, belowSubview: collectionView)
-            
-            selectionIndicator.snp.makeConstraints { make in
-                make.height.equalTo(Design.cellHeight)
-                make.width.equalTo(Design.cellWidth)
-                make.centerY.equalToSuperview()
-                make.centerX.equalToSuperview()
             }
         }
         
@@ -241,13 +218,10 @@ extension Home.TimeFilterView {
         static let swipeVelocityThreshold: CGFloat = 70
         static let swipeDistanceThreshold: CGFloat = 15
         
-        static let indicatorShadowOpacity: Float = 0.2
-        static let indicatorShadowRadius: CGFloat = 4
-        
         // Cores no estilo da imagem compartilhada
         static let backgroundColor = UIColor(red: 0.12, green: 0.12, blue: 0.12, alpha: 1.0)
-        static let selectedColor = UIColor(red: 0.25, green: 0.4, blue: 0.9, alpha: 1.0)
-        static let textColor = UIColor.white
+        static let selectedBackgroundColor = UIColor(red: 0.25, green: 0.4, blue: 0.9, alpha: 1.0)
+        static let selectedTextColor = UIColor.white
         static let unselectedTextColor = UIColor.white.withAlphaComponent(0.6)
     }
 }
@@ -285,12 +259,25 @@ extension Home.TimeFilterView {
                 make.edges.equalToSuperview()
             }
             
+            // Adiciona um background arredondado para o item
+            contentView.layer.cornerRadius = Design.cellHeight / 2
+            contentView.clipsToBounds = true
+            
             updateAppearance()
         }
         
         private func updateAppearance() {
             UIView.animate(withDuration: 0.2) {
-                self.titleLabel.textColor = self.isSelected ? Design.textColor : Design.unselectedTextColor
+                // Atualiza a cor do texto
+                self.titleLabel.textColor = self.isSelected ? Design.selectedTextColor : Design.unselectedTextColor
+                
+                // Atualiza o background da célula
+                self.contentView.backgroundColor = self.isSelected ? Design.selectedBackgroundColor : .clear
+                
+                // Atualiza o peso da fonte
+                self.titleLabel.font = self.isSelected ? 
+                    .systemFont(ofSize: 14, weight: .bold) : 
+                    .systemFont(ofSize: 14, weight: .semibold)
             }
         }
         
@@ -352,6 +339,48 @@ extension Home.TimeFilterView {
     }
 }
 
+// MARK: - Selection Handling
+extension Home.TimeFilterView {
+    func selectItem(at indexPath: IndexPath, animated: Bool = true, animationDuration: TimeInterval? = nil) {
+        guard indexPath != selectedIndexPath else { return }
+        
+        // Atualiza a seleção visual
+        if let previousIndexPath = selectedIndexPath {
+            if let previousCell = collectionView.cellForItem(at: previousIndexPath) as? FilterCell {
+                previousCell.isSelected = false
+            }
+        }
+        
+        // Atualiza o indexPath selecionado
+        collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
+        selectedIndexPath = indexPath
+        
+        // Centraliza o item selecionado com animação suave
+        let duration = animationDuration ?? (animated ? Design.normalAnimationDuration : 0)
+        
+        UIView.animate(withDuration: duration, delay: 0, options: [.curveEaseOut]) {
+            self.collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
+            self.layoutIfNeeded()
+        }
+        
+        // Atualiza a aparência da célula selecionada
+        if let cell = collectionView.cellForItem(at: indexPath) as? FilterCell {
+            cell.isSelected = true
+        }
+        
+        // Notifica sobre a mudança de filtro
+        if let filter = TimeFilter.allCases[safe: indexPath.item] {
+            // Ajusta a intensidade do feedback com base na distância percorrida
+            let previousItem = selectedIndexPath?.item ?? 0
+            let distance = abs((indexPath.item - previousItem))
+            let feedbackIntensity = min(0.5 + (CGFloat(min(distance, 5)) / 10.0), 1.0)
+            
+            feedbackGenerator.impactOccurred(intensity: feedbackIntensity)
+            onFilterSelected?(filter)
+        }
+    }
+}
+
 // MARK: - Swipe Handling
 extension Home.TimeFilterView {
     @objc private func handleSwipe(_ gesture: UIPanGestureRecognizer) {
@@ -375,7 +404,6 @@ extension Home.TimeFilterView {
                 let direction = deltaX > 0 ? 1 : -1
                 
                 // Calcula quantos itens pular com base na distância do swipe
-                // Isso permite pular vários itens em um único movimento contínuo
                 let distanceFactor = abs(deltaX) / 80 // Reduzido para maior sensibilidade
                 let itemsToSkip = max(1, min(Int(distanceFactor), 3)) // Entre 1 e 3 itens
                 
@@ -388,31 +416,29 @@ extension Home.TimeFilterView {
                     // Só atualiza se for um novo item
                     if targetIndexPath != selectedIndexPath {
                         // Calcula a duração da animação com base na velocidade do swipe
-                        // Quanto mais rápido o swipe, mais rápida a animação
                         let speed = min(abs(velocity.x), 1500) // Limita a velocidade máxima
                         let normalizedSpeed = speed / 1500 // Normaliza para um valor entre 0 e 1
                         
                         // Ajusta a duração para ser mais curta para movimentos mais rápidos
-                        let animationDuration = max(0.08, Design.normalAnimationDuration * (1.0 - (normalizedSpeed * 0.8)))
+                        let animationDuration = max(0.1, Design.normalAnimationDuration * (1.0 - (normalizedSpeed * 0.7)))
                         
-                        selectItem(at: targetIndexPath, animationDuration: animationDuration)
+                        // Seleciona o item com animação suave
+                        selectItem(at: targetIndexPath, animated: true, animationDuration: animationDuration)
                         
                         // Reseta a posição inicial para permitir swipes contínuos
                         initialSwipeX = translation.x
                         
-                        // Adiciona um pequeno atraso para evitar swipes muito rápidos em sequência
-                        // Reduzido ainda mais para tornar a experiência mais fluida
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) {
+                        // Prepara o feedback para o próximo swipe
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                             self.feedbackGenerator.prepare()
                         }
                     }
                 } else {
                     // Se estiver tentando ir além dos limites, seleciona o primeiro ou último item
-                    // Isso garante que o swipe sempre chegue até o final
                     let boundaryIndexPath = IndexPath(item: targetItem < 0 ? 0 : TimeFilter.allCases.count - 1, section: 0)
                     
                     if boundaryIndexPath != selectedIndexPath {
-                        selectItem(at: boundaryIndexPath, animationDuration: 0.15)
+                        selectItem(at: boundaryIndexPath, animated: true, animationDuration: 0.2)
                         
                         // Fornece feedback tátil mais forte ao atingir os limites
                         feedbackGenerator.impactOccurred(intensity: 1.0)
@@ -429,9 +455,8 @@ extension Home.TimeFilterView {
             // Verifica se há um swipe rápido para mudar vários itens
             if abs(velocity.x) > Design.swipeVelocityThreshold {
                 // Calcula quantos itens pular com base na velocidade
-                // Aumentado para permitir pular mais itens com swipes rápidos
-                let velocityFactor = abs(velocity.x) / 600 // Reduzido para maior sensibilidade
-                let itemsToSkip = min(Int(velocityFactor * 4), 6) // Aumentado para até 6 itens
+                let velocityFactor = abs(velocity.x) / 700 // Normaliza a velocidade
+                let itemsToSkip = min(Int(velocityFactor * 4), 5) // Limita a no máximo 5 itens
                 
                 // Corrige a direção para corresponder ao movimento do dedo
                 let direction = velocity.x > 0 ? 1 : -1
@@ -453,101 +478,11 @@ extension Home.TimeFilterView {
         // Só atualiza se for um novo item
         if targetIndexPath != selectedIndexPath {
             // Calcula a duração da animação com base na distância a percorrer
-            // Ajustado para ser mais rápido para swipes rápidos
             let distance = abs(targetItem - currentIndexPath.item)
+            let animationDuration = min(0.3, 0.1 + (TimeInterval(distance) * 0.05))
             
-            // Quanto maior a distância, mais rápida a animação (proporcionalmente)
-            let baseAnimationDuration = min(0.35, Design.normalAnimationDuration * (0.5 + (0.5 / CGFloat(max(1, distance)))))
-            
-            // Ajusta a duração com base na distância - quanto maior a distância, mais rápida a animação
-            let animationDuration = max(0.12, baseAnimationDuration)
-            
-            selectItem(at: targetIndexPath, animationDuration: animationDuration)
-        }
-    }
-}
-
-// MARK: - Selection Handling
-extension Home.TimeFilterView {
-    private func updateSelectionIndicator(for cell: UICollectionViewCell, animated: Bool = true, customDuration: TimeInterval? = nil) {
-        let duration: TimeInterval
-        
-        if let customDuration = customDuration {
-            duration = customDuration
-        } else {
-            duration = animated ? (isDragging ? Design.dragAnimationDuration : Design.normalAnimationDuration) : 0
-        }
-        
-        // Ajustado para usar curva de animação mais suave para movimentos rápidos
-        if duration < 0.2 {
-            // Para animações rápidas, usamos uma curva de animação mais direta
-            UIView.animate(withDuration: duration, delay: 0, options: [.curveEaseOut]) {
-                self.updateSelectionIndicatorPosition(for: cell)
-            }
-        } else {
-            // Para animações mais lentas, mantemos o efeito de mola para um movimento mais natural
-            UIView.animate(withDuration: duration,
-                           delay: 0,
-                           usingSpringWithDamping: Design.springDamping,
-                           initialSpringVelocity: Design.springVelocity) {
-                self.updateSelectionIndicatorPosition(for: cell)
-            }
-        }
-    }
-    
-    // Método auxiliar para reduzir duplicação de código
-    private func updateSelectionIndicatorPosition(for cell: UICollectionViewCell) {
-        self.selectionIndicator.snp.remakeConstraints { make in
-            make.height.equalTo(Design.cellHeight)
-            make.width.equalTo(Design.cellWidth)
-            make.centerY.equalToSuperview()
-            make.centerX.equalTo(cell.snp.centerX)
-        }
-        self.layoutIfNeeded()
-    }
-    
-    func selectItem(at indexPath: IndexPath, animated: Bool = true, animationDuration: TimeInterval? = nil) {
-        guard indexPath != selectedIndexPath else { return }
-        
-        // Atualiza a seleção visual
-        if let previousIndexPath = selectedIndexPath {
-            if let previousCell = collectionView.cellForItem(at: previousIndexPath) as? FilterCell {
-                previousCell.isSelected = false
-            }
-        }
-        
-        collectionView.selectItem(at: indexPath, animated: false, scrollPosition: [])
-        selectedIndexPath = indexPath
-        
-        if let cell = collectionView.cellForItem(at: indexPath) as? FilterCell {
-            cell.isSelected = true
-            
-            // Centraliza o item selecionado - usando uma animação mais rápida para scrolling
-            let scrollDuration = animationDuration != nil ? min(animationDuration!, 0.2) : (animated ? 0.2 : 0)
-            
-            // Usa CATransaction para controlar precisamente a duração da animação de scroll
-            CATransaction.begin()
-            CATransaction.setAnimationDuration(scrollDuration)
-            collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: scrollDuration > 0)
-            CATransaction.commit()
-            
-            // Atualiza o indicador de seleção com a duração personalizada
-            updateSelectionIndicator(for: cell, animated: animated, customDuration: animationDuration)
-        }
-        
-        // Notifica sobre a mudança de filtro
-        if let filter = TimeFilter.allCases[safe: indexPath.item] {
-            // Ajusta a intensidade do feedback com base na distância percorrida
-            let previousItem = selectedIndexPath?.item ?? 0
-            let distance = abs((indexPath.item - previousItem))
-            
-            // Ajuste mais preciso da intensidade do feedback
-            let baseIntensity: CGFloat = 0.5
-            let maxIntensityBoost: CGFloat = 0.5
-            let feedbackIntensity = min(baseIntensity + (CGFloat(min(distance, 5)) / 5.0) * maxIntensityBoost, 1.0)
-            
-            feedbackGenerator.impactOccurred(intensity: feedbackIntensity)
-            onFilterSelected?(filter)
+            // Seleciona o item com animação suave
+            selectItem(at: targetIndexPath, animated: true, animationDuration: animationDuration)
         }
     }
 }
@@ -628,3 +563,4 @@ struct TimeFilterViewPreview: PreviewProvider {
     }
 }
 #endif
+
